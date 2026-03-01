@@ -16,9 +16,6 @@ class SupabaseServices {
 
   static String? id = "";
 
-  static String defaultAvatar =
-      "https://firebasestorage.googleapis.com/v0/b/spittin-908cd.firebasestorage.app/o/profilepic%2Fdefault_avatar.jpg?alt=media&token=a44a6dd7-aaf5-41cf-934d-a7fd60a43d3c";
-
   void setUserId(String? id) => SupabaseServices.id = id;
 
   Future<bool> signUp(Map<String, dynamic> userData, File? avatarFile) async {
@@ -58,7 +55,7 @@ class SupabaseServices {
     try {
       String? publicUrl;
 
-      if (avatarFile == null) return false;
+      if (avatarFile == null) return true;
       final fileName = '$userId/avatar.png';
 
       await supabase.storage.from('avatars').upload(fileName, avatarFile);
@@ -98,6 +95,58 @@ class SupabaseServices {
     } catch (e, st) {
       appLogger.e(
         "Erreur lors de la connexion au compte utilisateur $email",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    required String userId,
+    String? firstName,
+    String? lastName,
+    String? bio,
+    String? avatarUrl,
+  }) async {
+    try {
+      await supabase
+          .from('profiles')
+          .update({
+            'first_name': ?firstName,
+            'last_name': ?lastName,
+            'biography': ?bio,
+            'avatar_url': ?avatarUrl,
+            'display_name':
+                '$firstName $lastName', // On reconstruit le nom complet
+          })
+          .eq('id', userId);
+
+      return true;
+    } catch (e, st) {
+      appLogger.e(
+        "Profile Update Error",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> isEmailAvailable(String email) async {
+    try {
+      final result = await supabase
+          .from('profiles')
+          .select('id')
+          .eq("email", email)
+          .maybeSingle();
+
+      return result == null;
+    } catch (e, st) {
+      appLogger.e(
+        "Email Validity Error",
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),

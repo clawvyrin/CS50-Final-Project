@@ -55,7 +55,7 @@ class _SignInState extends State<SignIn> {
       appLogger.i("Connexion réussie");
 
       if (success && mounted) {
-        context.go('/auth');
+        context.go('/home');
       }
     } catch (e) {
       appLogger.e("Erreur de connexion", error: e);
@@ -87,7 +87,7 @@ class _SignInState extends State<SignIn> {
     return PlatformScaffold(
       appBar: PlatformAppBar(title: Text("Sign In")),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(25.0),
         child: Form(
           key: _formKey,
           child: Column(

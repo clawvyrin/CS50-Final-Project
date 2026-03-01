@@ -73,11 +73,9 @@ class AppRouter {
       final session = authClient.currentSession;
       final bool isLoggedIn = session != null;
 
-      if (isLoggedIn && state.fullPath!.contains("auth")) {
+      if (isLoggedIn && state.fullPath!.contains("/auth")) {
         return "/home";
-      }
-
-      if (!isLoggedIn && state.fullPath!.contains("home")) {
+      } else if (!isLoggedIn && state.fullPath!.contains("/home")) {
         return "/auth";
       }
 

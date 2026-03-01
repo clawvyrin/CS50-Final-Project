@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/logger.dart';
+import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/services/router_services.dart';
 
 final supabaseProvider =
@@ -43,6 +44,23 @@ class SupabaseServices {
     } catch (e, st) {
       appLogger.e(
         "Erreur lors de la creation du compte utilisateur",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> signOut() async {
+    try {
+      appLogger.i("Début de la deconnexion...");
+
+      await supabase.auth.signOut();
+      return true;
+    } catch (e, st) {
+      appLogger.e(
+        "Erreur lors de la deconnexion du compte utilisateur",
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),
@@ -135,7 +153,7 @@ class SupabaseServices {
     }
   }
 
-  Future<bool> isEmailAvailable(String email) async {
+  Future<bool> checkEmailExists(String email) async {
     try {
       final result = await supabase
           .from('profiles')
@@ -143,7 +161,29 @@ class SupabaseServices {
           .eq("email", email)
           .maybeSingle();
 
-      return result == null;
+      return result != null;
+    } catch (e, st) {
+      appLogger.e(
+        "Email Validity Error",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
+  Future getProfileData(String id) async {
+    try {
+      final result = await supabase
+          .from('profiles')
+          .select()
+          .eq("id", id)
+          .maybeSingle();
+
+      if (result != null) return Profiles.fromMap(result);
+
+      return null;
     } catch (e, st) {
       appLogger.e(
         "Email Validity Error",

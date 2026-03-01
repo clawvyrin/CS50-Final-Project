@@ -9,12 +9,12 @@ enum Validator { email, password, displayName, bio }
 String? formValidator(
   String value,
   Validator type, {
-  bool isEmailAvailable = true,
+  bool isEmailTaken = false,
   bool isSignIn = true,
 }) {
   switch (type) {
     case Validator.email:
-      return emailValidator(value, isEmailAvailable, isSignIn);
+      return emailValidator(value, isEmailTaken, isSignIn);
     case Validator.password:
       return passwordValidator(value);
     case Validator.displayName:
@@ -24,7 +24,7 @@ String? formValidator(
   }
 }
 
-String? emailValidator(String email, bool isEmailAvailable, bool isSignIn) {
+String? emailValidator(String email, bool isEmailTaken, bool isSignIn) {
   final emailRegex = RegExp(
     r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
   );
@@ -34,9 +34,10 @@ String? emailValidator(String email, bool isEmailAvailable, bool isSignIn) {
   }
 
   // Si on est à l'inscription et que l'email est déjà pris
-  if (!isSignIn && !isEmailAvailable) {
+  if (!isSignIn && isEmailTaken) {
     return "Email already in use";
   }
+
   return null;
 }
 

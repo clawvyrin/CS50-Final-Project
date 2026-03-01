@@ -25,6 +25,7 @@ class _RegisterState extends State<Register> {
   File? avatar;
 
   bool isLoading = false;
+  bool isEmailTaken = false;
 
   Widget avatarForm() {
     return Stack(
@@ -59,7 +60,30 @@ class _RegisterState extends State<Register> {
       hintText: "Email",
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
-      validator: (value) => formValidator(value ?? '', Validator.email),
+      validator: (value) {
+        final basicError = formValidator(
+          value ?? '',
+          Validator.email,
+          isSignIn: false,
+          isEmailTaken: isEmailTaken,
+        );
+        if (basicError != null) return basicError;
+        if (isEmailTaken) return "Email already in use";
+        return null;
+      },
+      onChanged: (value) async {
+        // Optionnel : On réinitialise l'erreur quand l'utilisateur modifie le texte
+        if (isEmailTaken) setState(() => isEmailTaken = false);
+
+        // On vérifie seulement si le format de l'email est déjà valide pour ne pas spammer la DB
+        if (value.contains('@') && value.contains('.')) {
+          bool exists = await SupabaseServices().checkEmailExists(value);
+          if (exists != isEmailTaken) {
+            setState(() => isEmailTaken = exists);
+            _formKey.currentState?.validate(); // Relance la validation visuelle
+          }
+        }
+      },
     );
   }
 
@@ -69,7 +93,6 @@ class _RegisterState extends State<Register> {
       controller: passwordController,
       hintText: "Password",
       textInputAction: TextInputAction.done,
-      keyboardType: TextInputType.name,
       validator: (value) => formValidator(value ?? '', Validator.password),
     );
   }
@@ -115,6 +138,15 @@ class _RegisterState extends State<Register> {
   }
 
   Future<void> _handleSignUp() async {
+    bool alreadyTaken = await SupabaseServices().checkEmailExists(
+      emailController.text,
+    );
+    if (alreadyTaken) {
+      setState(() => isEmailTaken = true);
+      _formKey.currentState!.validate();
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
@@ -131,7 +163,7 @@ class _RegisterState extends State<Register> {
       appLogger.i("Connexion réussie");
 
       if (success && mounted) {
-        context.go('/auth'); // Redirection manuelle si nécessaire
+        context.go('/home'); // Redirection manuelle si nécessaire
       }
     } catch (e) {
       appLogger.e("Erreur de connexion", error: e);

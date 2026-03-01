@@ -47,15 +47,16 @@ class _SignInState extends State<SignIn> {
     setState(() => isLoading = true);
 
     try {
-      // Ton appel Supabase (à décommenter quand ton service est prêt)
-      /*
-      await Supabase.instance.client.auth.signInWithPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+      bool success = await SupabaseServices().signIn(
+        emailController.text.trim(),
+        passwordController.text.trim(),
       );
-      */
 
       appLogger.i("Connexion réussie");
+
+      if (success && mounted) {
+        context.go('/auth');
+      }
     } catch (e) {
       appLogger.e("Erreur de connexion", error: e);
     } finally {
@@ -84,7 +85,7 @@ class _SignInState extends State<SignIn> {
   @override
   Widget build(BuildContext context) {
     return PlatformScaffold(
-      appBar: PlatformAppBar(),
+      appBar: PlatformAppBar(title: Text("Sign In")),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

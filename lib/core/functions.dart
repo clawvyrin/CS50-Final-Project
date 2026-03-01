@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,79 +9,81 @@ enum Validator { email, password, displayName, bio }
 String? formValidator(
   String value,
   Validator type, {
-  bool isEmailAvailable = false,
+  bool isEmailAvailable = true,
   bool isSignIn = true,
 }) {
   switch (type) {
     case Validator.email:
       return emailValidator(value, isEmailAvailable, isSignIn);
     case Validator.password:
-      return paswordValidator(value);
+      return passwordValidator(value);
+    case Validator.displayName:
+      return value.isEmpty ? "Please provide a name" : null;
     default:
       return null;
   }
 }
 
 String? emailValidator(String email, bool isEmailAvailable, bool isSignIn) {
-  if (email.isEmpty ||
-      !RegExp(
-        r"""
-^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+""",
-      ).hasMatch(email)) {
+  final emailRegex = RegExp(
+    r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+  );
+
+  if (email.isEmpty || !emailRegex.hasMatch(email)) {
     return "Please, provide a valid email";
-  } else if (isEmailAvailable == false && !isSignIn) {
+  }
+
+  // Si on est à l'inscription et que l'email est déjà pris
+  if (!isSignIn && !isEmailAvailable) {
     return "Email already in use";
   }
   return null;
 }
 
-String? paswordValidator(String password) {
+String? passwordValidator(String password) {
   if (password.isEmpty) {
     return "Please, provide a password";
   } else if (password.length < 6) {
-    return "Provided pasword is too short";
+    return "Password is too short (min 6)";
   } else if (password.length > 30) {
-    return "Provided pasword is too long";
+    return "Password is too long (max 30)";
   }
   return null;
 }
 
 Future<File?> pickImage(bool fromGallery) async {
   try {
-    XFile? pickedImage = await ImagePicker().pickImage(
+    final XFile? pickedImage = await ImagePicker().pickImage(
       source: fromGallery ? ImageSource.gallery : ImageSource.camera,
       imageQuality: 50,
     );
 
     if (pickedImage == null) return null;
 
-    CroppedFile? cropped = await ImageCropper().cropImage(
+    final CroppedFile? cropped = await ImageCropper().cropImage(
       sourcePath: pickedImage.path,
-      aspectRatio: const CropAspectRatio(ratioX: 10, ratioY: 10),
-      //  cropStyle: CropStyle.circle,
-      compressFormat: ImageCompressFormat.png,uiSettings: [
-          AndroidUiSettings(
-            toolbarTitle: 'Crop picture',
-            toolbarColor: Colors.deepPurple,
-            toolbarWidgetColor: Colors.white,
-            initAspectRatio: CropAspectRatioPreset.square,
-            lockAspectRatio: true,
-          ),
-          IOSUiSettings(
-            title: 'Crop',
-            aspectRatioLockEnabled: true,
-          ),
-        ],
+      aspectRatio: const CropAspectRatio(
+        ratioX: 1,
+        ratioY: 1,
+      ), // Ratio 1:1 pour les avatars
+      compressFormat: ImageCompressFormat.png,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop picture',
+          toolbarColor: Colors.deepPurple,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+        ),
+        IOSUiSettings(title: 'Crop', aspectRatioLockEnabled: true),
+      ],
     );
 
-    return File(cropped!.path);
+    // Vérification de sécurité si l'utilisateur annule le recadrage
+    if (cropped == null) return null;
+    return File(cropped.path);
   } catch (e, st) {
-    appLogger.e(
-      "Error picking image",
-      error: e,
-      time: DateTime.now().toUtc(),
-      stackTrace: st,
-    );
+    appLogger.e("Error picking image", error: e, stackTrace: st);
     return null;
   }
 }

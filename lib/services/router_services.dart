@@ -7,7 +7,7 @@ import 'package:task_companion/services/supabase_services.dart';
 import 'package:task_companion/ui/screens/authentication/auth_method.dart';
 import 'package:task_companion/ui/screens/authentication/sign_in.dart';
 import 'package:task_companion/ui/screens/home.dart';
-import 'package:task_companion/ui/screens/authentication/register.dart';
+import 'package:task_companion/ui/screens/authentication/sign_up.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
 

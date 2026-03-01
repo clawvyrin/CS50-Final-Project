@@ -82,30 +82,32 @@ class _RegisterState extends State<Register> {
   }
 
   Widget displayNameForm() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        PlatformTextFormField(
-          key: firstNameKey,
-          controller: firstNameController,
-          hintText: "First name",
-          keyboardType: TextInputType.name,
-          textInputAction: TextInputAction.next,
-          onChanged: (value) => firstNameKey.currentState!.validate(),
-          validator: (value) => formValidator(value!, Validator.displayName),
-        ),
-        SizedBox(width: 5),
-        PlatformTextFormField(
-          key: lastNameKey,
-          controller: lastNameController,
-          hintText: "Last name",
-          keyboardType: TextInputType.name,
-          textInputAction: TextInputAction.next,
-          onChanged: (value) => lastNameKey.currentState!.validate(),
-          validator: (value) => formValidator(value!, Validator.displayName),
-        ),
-      ],
+    return Expanded(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          PlatformTextFormField(
+            key: firstNameKey,
+            controller: firstNameController,
+            hintText: "First name",
+            keyboardType: TextInputType.name,
+            textInputAction: TextInputAction.next,
+            onChanged: (value) => firstNameKey.currentState!.validate(),
+            validator: (value) => formValidator(value!, Validator.displayName),
+          ),
+          SizedBox(width: 5),
+          PlatformTextFormField(
+            key: lastNameKey,
+            controller: lastNameController,
+            hintText: "Last name",
+            keyboardType: TextInputType.name,
+            textInputAction: TextInputAction.next,
+            onChanged: (value) => lastNameKey.currentState!.validate(),
+            validator: (value) => formValidator(value!, Validator.displayName),
+          ),
+        ],
+      ),
     );
   }
 
@@ -156,9 +158,8 @@ class _RegisterState extends State<Register> {
       appBar: PlatformAppBar(title: Text("Task Companion")),
       body: Padding(
         padding: const EdgeInsets.all(25.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
+          shrinkWrap: true,
           children: [
             avatarForm(),
             const SizedBox(height: 15),

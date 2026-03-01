@@ -13,8 +13,7 @@ class SignIn extends StatefulWidget {
 }
 
 class _SignInState extends State<SignIn> {
-  final emailKey = GlobalKey<FormState>();
-  final passwordKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
@@ -23,69 +22,62 @@ class _SignInState extends State<SignIn> {
 
   Widget emailForm() {
     return PlatformTextFormField(
-      key: emailKey,
       controller: emailController,
       hintText: "Email",
       keyboardType: TextInputType.emailAddress,
       textInputAction: TextInputAction.next,
-      onChanged: (value) => emailKey.currentState!.validate(),
-      validator: (value) => formValidator(value!, Validator.email),
+      validator: (value) => formValidator(value ?? '', Validator.email),
     );
   }
 
   Widget passwordForm() {
     return PlatformTextFormField(
-      key: passwordKey,
       obscureText: true,
       controller: passwordController,
       hintText: "Password",
       textInputAction: TextInputAction.done,
       keyboardType: TextInputType.name,
-      onChanged: (value) => passwordKey.currentState!.validate(),
-      validator: (value) => formValidator(value!, Validator.password),
+      validator: (value) => formValidator(value ?? '', Validator.password),
     );
   }
 
+  Future<void> _handleSignIn() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => isLoading = true);
+
+    try {
+      // Ton appel Supabase (à décommenter quand ton service est prêt)
+      /*
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+      */
+
+      appLogger.i("Connexion réussie");
+    } catch (e) {
+      appLogger.e("Erreur de connexion", error: e);
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
   Widget signInButton() {
-    return PlatformElevatedButton(
-      onPressed: isLoading
-          ? null
-          : () async {
-              if (emailKey.currentState!.validate() == false ||
-                  passwordKey.currentState!.validate() == false) {
-                return;
-              }
-
-              setState(() => isLoading = true);
-
-              bool isLoggedIn = await SupabaseServices().signIn(
-                emailController.text.trim(),
-                passwordController.text.trim(),
-              );
-
-              setState(() => isLoading = false);
-
-              if (mounted && isLoggedIn) context.pop();
-            },
-      child: isLoading ? const CircularProgressIndicator() : Text("Sign In"),
+    return SizedBox(
+      width: 255,
+      height: 55,
+      child: PlatformElevatedButton(
+        onPressed: isLoading ? null : _handleSignIn,
+        child: isLoading ? const CircularProgressIndicator() : Text("Sign In"),
+      ),
     );
   }
 
   @override
   void dispose() {
-    try {
-      emailController.dispose();
-      passwordController.dispose();
-      emailKey.currentState?.dispose();
-      passwordKey.currentState?.dispose();
-    } catch (e, st) {
-      appLogger.d(
-        "Error disposing controllers in sign in",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-    }
+    emailController.dispose();
+    passwordController.dispose();
     super.dispose();
   }
 
@@ -93,16 +85,21 @@ class _SignInState extends State<SignIn> {
   Widget build(BuildContext context) {
     return PlatformScaffold(
       appBar: PlatformAppBar(),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          emailForm(),
-          const SizedBox(height: 15),
-          passwordForm(),
-          const SizedBox(height: 25),
-          signInButton(),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              emailForm(),
+              const SizedBox(height: 15),
+              passwordForm(),
+              const SizedBox(height: 25),
+              signInButton(),
+            ],
+          ),
+        ),
       ),
     );
   }

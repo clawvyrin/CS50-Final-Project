@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/logger.dart';
@@ -110,8 +111,8 @@ class SupabaseNotifier extends AsyncNotifier<SupabaseClient> {
   @override
   Future<SupabaseClient> build() async {
     await Supabase.initialize(
-      url: 'https://pxtflwejzxwmulotrvtm.supabase.co',
-      anonKey: 'sb_publishable_Agw12e0V_-L9zwhGAnzuJg_Hx2S8Qio',
+      url: dotenv.env['SUPABASE_URL']!,
+      anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
     );
 
     SupabaseServices().setUserId(Supabase.instance.client.auth.currentUser?.id);

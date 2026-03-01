@@ -8,20 +8,34 @@ class AuthenticationMethod extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PlatformScaffold(
-      appBar: PlatformAppBar(title: Text("Task Companion")),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          PlatformElevatedButton(
-            child: Text("Sign In"),
-            onPressed: () => context.goNamed("sign_in"),
+      appBar: PlatformAppBar(title: Center(child: Text("Task Companion"))),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 255,
+                height: 55,
+                child: PlatformElevatedButton(
+                  child: Center(child: Text("Sign In")),
+                  onPressed: () => context.goNamed("sign_in"),
+                ),
+              ),
+              SizedBox(height: 15),
+              SizedBox(
+                width: 255,
+                height: 55,
+                child: PlatformElevatedButton(
+                  child: Center(child: Text("Sign Up")),
+                  onPressed: () => context.goNamed("sign_up"),
+                ),
+              ),
+            ],
           ),
-          PlatformElevatedButton(
-            child: Text("Sign Up"),
-            onPressed: () => context.goNamed("sign_up"),
-          ),
-        ],
+        ),
       ),
     );
   }

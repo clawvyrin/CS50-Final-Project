@@ -16,11 +16,14 @@ late GoTrueClient authClient;
 final routerProvider = Provider<GoRouter>((ref) {
   return ref
       .watch(supabaseProvider)
-      .when(
+      .maybeWhen(
         data: (supabaseClient) {
           authClient = supabaseClient.auth;
           return AppRouter.router;
         },
+        orElse: () => GoRouter(
+          routes: [GoRoute(path: '/', builder: (_, _) => const OnLoading())],
+        ),
         error: (e, _) => GoRouter(
           routes: [
             GoRoute(
@@ -45,33 +48,36 @@ class AppRouter {
     routes: [
       GoRoute(
         path: '/auth',
+        name: 'auth',
         builder: (context, state) => const AuthenticationMethod(),
         routes: [
           GoRoute(
-            path: '/sign_up',
+            path: 'sign_up',
+            name: 'sign_up',
             builder: (context, state) => const Register(),
           ),
           GoRoute(
-            path: '/sign_in',
+            path: 'sign_in',
+            name: 'sign_in',
             builder: (context, state) => const SignIn(),
           ),
         ],
       ),
-      GoRoute(path: '/home', builder: (context, state) => const Home()),
+      GoRoute(
+        path: '/home',
+        name: 'home',
+        builder: (context, state) => const Home(),
+      ),
     ],
     redirect: (BuildContext context, GoRouterState state) {
       final session = authClient.currentSession;
       final bool isLoggedIn = session != null;
 
       if (isLoggedIn && state.fullPath!.contains("auth")) {
-        if (authClient.currentUser!.userMetadata!.containsKey("username")) {
-          return "/home";
-        } else {
-          return "/onBoard";
-        }
+        return "/home";
       }
 
-      if (!isLoggedIn && state.fullPath!.contains("auth")) {
+      if (!isLoggedIn && state.fullPath!.contains("home")) {
         return "/auth";
       }
 

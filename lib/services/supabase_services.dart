@@ -76,7 +76,10 @@ class SupabaseServices {
 class SupabaseNotifier extends AsyncNotifier<SupabaseClient> {
   @override
   Future<SupabaseClient> build() async {
-    await Supabase.initialize(url: '', anonKey: '');
+    await Supabase.initialize(
+      url: 'https://pxtflwejzxwmulotrvtm.supabase.co',
+      anonKey: 'sb_publishable_Agw12e0V_-L9zwhGAnzuJg_Hx2S8Qio',
+    );
 
     SupabaseServices().setUserId(Supabase.instance.client.auth.currentUser?.id);
 

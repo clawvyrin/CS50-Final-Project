@@ -24,6 +24,12 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Library access needed to pick picture for either messaging, tasks or avatar.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Camera access needed to take picture for either messaging, tasks or avatar.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Camera access needed to record videos for tasks or to send vocal notes messages.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

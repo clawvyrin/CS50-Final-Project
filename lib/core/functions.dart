@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:task_companion/core/logger.dart';
@@ -59,7 +60,19 @@ Future<File?> pickImage(bool fromGallery) async {
       sourcePath: pickedImage.path,
       aspectRatio: const CropAspectRatio(ratioX: 10, ratioY: 10),
       //  cropStyle: CropStyle.circle,
-      compressFormat: ImageCompressFormat.png,
+      compressFormat: ImageCompressFormat.png,uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop picture',
+            toolbarColor: Colors.deepPurple,
+            toolbarWidgetColor: Colors.white,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
     );
 
     return File(cropped!.path);

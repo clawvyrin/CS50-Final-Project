@@ -15,32 +15,60 @@ class SupabaseServices {
 
   void setUserId(String? id) => SupabaseServices.id = id;
 
-  Future<AuthResponse?> manageUser(
-    String email,
-    String password, {
-    bool signIn = false,
-  }) async {
+  Future<bool> signUp(Map<String, dynamic> userData) async {
     try {
       appLogger.i("Début de fonction manageUser...");
-      AuthResponse res;
-      if (signIn) {
-        res = await authClient.signInWithPassword(
-          email: email,
-          password: password,
-        );
-      }
+      AuthResponse? response;
 
-      res = await authClient.signUp(email: email, password: password);
+      response = await authClient.signUp(
+        email: userData["email"],
+        password: userData["password"],
+        data: {
+          "display_name": userData["displayName"],
+          "avatar_url": userData["avatarUrl"],
+          "biography": userData["biography"],
+        },
+      );
 
-      appLogger.d("Compte utilisateur créé avec succès");
-      return res;
+      if (response.user == null) return false;
+
+      appLogger.d("Utilisateur créé avec succès: ${response.user!.id}");
+      setUserId(response.user!.id);
+
+      return true;
     } catch (e, st) {
       appLogger.e(
-        "Erreur lors de la ${signIn ? "creation" : "suppression"} du compte utilisateur",
+        "Erreur lors de la creation du compte utilisateur",
         error: e,
         stackTrace: st,
       );
-      return null;
+      return false;
+    }
+  }
+
+  Future<bool> signIn(String email, String password) async {
+    try {
+      appLogger.i("Tentative de connexion pour: $email");
+      AuthResponse? response;
+
+      response = await authClient.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (response.user == null) return false;
+
+      appLogger.i("Connexion réussie");
+      setUserId(response.user!.id);
+
+      return true;
+    } catch (e, st) {
+      appLogger.e(
+        "Erreur lors de la connexion au compte utilisateur $email",
+        error: e,
+        stackTrace: st,
+      );
+      return false;
     }
   }
 }

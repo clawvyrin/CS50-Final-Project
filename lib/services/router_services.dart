@@ -4,10 +4,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/ui/screens/authentication/auth_method.dart';
+import 'package:task_companion/ui/screens/authentication/sign_in.dart';
 import 'package:task_companion/ui/screens/home.dart';
-import 'package:task_companion/ui/screens/register.dart';
+import 'package:task_companion/ui/screens/authentication/register.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
-import 'package:task_companion/ui/widgets/on_loading';
+import 'package:task_companion/ui/widgets/on_loading.dart';
 
 late GoTrueClient authClient;
 
@@ -41,7 +43,20 @@ class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/auth',
     routes: [
-      GoRoute(path: '/auth', builder: (context, state) => const Register()),
+      GoRoute(
+        path: '/auth',
+        builder: (context, state) => const AuthenticationMethod(),
+        routes: [
+          GoRoute(
+            path: '/sign_up',
+            builder: (context, state) => const Register(),
+          ),
+          GoRoute(
+            path: '/sign_in',
+            builder: (context, state) => const SignIn(),
+          ),
+        ],
+      ),
       GoRoute(path: '/home', builder: (context, state) => const Home()),
     ],
     redirect: (BuildContext context, GoRouterState state) {

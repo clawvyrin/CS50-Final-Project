@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/providers/profiles_provider.dart';
 import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/ui/widgets/create_project.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
 
@@ -18,7 +17,7 @@ class Home extends ConsumerStatefulWidget {
 }
 
 class _HomeState extends ConsumerState<Home> {
-  PreferredSizeWidget? appBar(Profiles user) {
+  PreferredSizeWidget? _appBar(Profiles user) {
     return AppBar(
       leading: Builder(
         builder: (context) => GestureDetector(
@@ -47,7 +46,7 @@ class _HomeState extends ConsumerState<Home> {
     );
   }
 
-  Widget projectList() {
+  Widget _projectList() {
     return ListView.builder(
       itemCount: 0,
       itemBuilder: (data, index) {
@@ -56,7 +55,7 @@ class _HomeState extends ConsumerState<Home> {
     );
   }
 
-  Drawer drawer(Profiles user) {
+  Drawer _drawer(Profiles user) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -79,6 +78,19 @@ class _HomeState extends ConsumerState<Home> {
     );
   }
 
+  void _createNewProject(BuildContext context) {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => CreateProject(
+        nameController: nameController,
+        descController: descController,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ref
@@ -86,16 +98,16 @@ class _HomeState extends ConsumerState<Home> {
         .when(
           data: (Profiles user) {
             return Scaffold(
-              appBar: appBar(user),
-              drawer: drawer(user),
+              appBar: _appBar(user),
+              drawer: _drawer(user),
               body: RefreshIndicator(
                 onRefresh: () async {
                   ref.invalidate(profileProvider(SupabaseServices.id!));
                 },
-                child: projectList(),
+                child: _projectList(),
               ),
               floatingActionButton: FloatingActionButton(
-                onPressed: () => [],
+                onPressed: () => _createNewProject(context),
                 child: const Icon(Icons.add),
               ),
             );

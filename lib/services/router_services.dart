@@ -8,6 +8,7 @@ import 'package:task_companion/ui/screens/authentication/auth_method.dart';
 import 'package:task_companion/ui/screens/authentication/sign_in.dart';
 import 'package:task_companion/ui/screens/home/home.dart';
 import 'package:task_companion/ui/screens/authentication/sign_up.dart';
+import 'package:task_companion/ui/screens/settings/settings.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
 
@@ -67,6 +68,11 @@ class AppRouter {
         path: '/home',
         name: 'home',
         builder: (context, state) => const Home(),
+      ),
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (context, state) => const Settings(),
       ),
     ],
     redirect: (BuildContext context, GoRouterState state) {

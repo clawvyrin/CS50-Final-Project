@@ -5,7 +5,7 @@ class Task {
   final String projectId;
   final String title;
   final String? description;
-  final TaskStatus status; // 'todo', 'in_progress', 'done'
+  final TaskStatus status;
   final String? assignedTo;
   final DateTime? dueDate;
 
@@ -19,26 +19,36 @@ class Task {
     this.dueDate,
   });
 
+  Task copyWith(
+    String? id,
+    String? projectId,
+    String? title,
+    String? description,
+    TaskStatus? status,
+    String? assignedTo,
+    DateTime? dueDate,
+  ) {
+    return Task(
+      id: id ?? this.id,
+      projectId: projectId ?? this.projectId,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      status: status ?? this.status,
+      assignedTo: assignedTo ?? this.assignedTo,
+      dueDate: dueDate ?? this.dueDate,
+    );
+  }
+
   factory Task.fromMap(Map<String, dynamic> map) {
-    TaskStatus status = TaskStatus.done;
-
-    switch (map['status']) {
-      case 'todo':
-        status = TaskStatus.todo;
-      case 'in_progress':
-        status = TaskStatus.inProgress;
-      case 'done':
-        status = TaskStatus.done;
-      default:
-        status = TaskStatus.todo;
-    }
-
     return Task(
       id: map['id'],
       projectId: map['project_id'],
-      title: map['title'],
+      title: map['title'] ?? '',
       description: map['description'],
-      status: status,
+      status: TaskStatus.values.firstWhere(
+        (e) => e.name == map['status'],
+        orElse: () => TaskStatus.todo,
+      ),
       assignedTo: map['assigned_to'],
       dueDate: map['due_date'] != null ? DateTime.parse(map['due_date']) : null,
     );
@@ -49,7 +59,7 @@ class Task {
       'project_id': projectId,
       'title': title,
       'description': description,
-      'status': status,
+      'status': status.name, // Très important : envoyer le String
       'assigned_to': assignedTo,
       'due_date': dueDate?.toIso8601String(),
     };

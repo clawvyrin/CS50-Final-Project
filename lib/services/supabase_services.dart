@@ -19,6 +19,12 @@ class SupabaseServices {
 
   void setUserId(String? id) => SupabaseServices.id = id;
 
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///               AUTHENTICATION                   ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
   Future<bool> signUp(Map<String, dynamic> userData, File? avatarFile) async {
     try {
       appLogger.i("Début de l'inscription...");
@@ -69,32 +75,6 @@ class SupabaseServices {
     }
   }
 
-  Future<bool> uploadPicture(File? avatarFile, String userId) async {
-    try {
-      String? publicUrl;
-
-      if (avatarFile == null) return true;
-      final fileName = '$userId/avatar.png';
-
-      await supabase.storage.from('avatars').upload(fileName, avatarFile);
-      publicUrl = supabase.storage.from('avatars').getPublicUrl(fileName);
-
-      await authClient.updateUser(
-        UserAttributes(data: {'avatar_url': publicUrl}),
-      );
-
-      return true;
-    } catch (e, st) {
-      appLogger.e(
-        "Error uploading picture",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-      return false;
-    }
-  }
-
   Future<bool> signIn(String email, String password) async {
     try {
       appLogger.i("Tentative de connexion pour: $email");
@@ -118,6 +98,34 @@ class SupabaseServices {
         time: DateTime.now().toUtc(),
       );
       return false;
+    }
+  }
+
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///                    PROFILES                    ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
+  Future getProfileData(String id) async {
+    try {
+      final result = await supabase
+          .from('profiles')
+          .select()
+          .eq("id", id)
+          .maybeSingle();
+
+      if (result != null) return Profiles.fromMap(result);
+
+      return null;
+    } catch (e, st) {
+      appLogger.e(
+        "Email Validity Error",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return null;
     }
   }
 
@@ -173,20 +181,98 @@ class SupabaseServices {
     }
   }
 
-  Future getProfileData(String id) async {
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///                    PROJECTS                    ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
+  Future getUserProjects() async {
+    try {} catch (e, st) {
+      appLogger.e(
+        "Error getting user projects",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+    }
+  }
+
+  Future createProject(String name, String description) async {
+    try {} catch (e, st) {
+      appLogger.e(
+        "Error creating project",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+    }
+  }
+
+  Future deleteProject() async {
+    try {} catch (e, st) {
+      appLogger.e(
+        "Error deleting project",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+    }
+  }
+
+  Future editProject() async {
+    try {} catch (e, st) {
+      appLogger.e(
+        "Error editing project",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+    }
+  }
+
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///                    TASKS                       ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///                    MILESTONES                  ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///                    RESSOURCES                  ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
+  ///////////////////////////////////////////////////////
+  ///                                                ///
+  ///                    HELPERS                     ///
+  ///                                                ///
+  //////////////////////////////////////////////////////
+
+  Future<bool> uploadPicture(File? avatarFile, String userId) async {
     try {
-      final result = await supabase
-          .from('profiles')
-          .select()
-          .eq("id", id)
-          .maybeSingle();
+      String? publicUrl;
 
-      if (result != null) return Profiles.fromMap(result);
+      if (avatarFile == null) return true;
+      final fileName = '$userId/avatar.png';
 
-      return null;
+      await supabase.storage.from('avatars').upload(fileName, avatarFile);
+      publicUrl = supabase.storage.from('avatars').getPublicUrl(fileName);
+
+      await authClient.updateUser(
+        UserAttributes(data: {'avatar_url': publicUrl}),
+      );
+
+      return true;
     } catch (e, st) {
       appLogger.e(
-        "Email Validity Error",
+        "Error uploading picture",
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),

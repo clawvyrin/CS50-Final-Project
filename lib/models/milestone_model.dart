@@ -1,57 +1,22 @@
-enum MilestoneStatus { onTrack, achieved, postponed }
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:task_companion/models/enums.dart';
 
-class Milestone {
-  final String id;
-  final String title;
-  final DateTime originalDueDate;
-  final DateTime? updatedDueDate;
-  final MilestoneStatus status;
+part 'milestone_model.freezed.dart';
+part 'milestone_model.g.dart';
 
-  Milestone({
-    required this.id,
-    required this.title,
-    required this.originalDueDate,
-    required this.updatedDueDate,
-    required this.status,
-  });
+@freezed
+abstract class Milestone with _$Milestone {
+  @JsonSerializable(explicitToJson: true)
+  const factory Milestone({
+    required String id,
+    @JsonKey(name: 'project_id') required String projectId,
+    required String title,
+    @JsonKey(name: 'original_due_date') required DateTime originalDueDate,
+    @JsonKey(name: 'updated_due_date') DateTime? updatedDueDate,
+    required MilestoneStatus status,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+  }) = _Milestone;
 
-  Milestone copyWith(
-    String? id,
-    String? title,
-    DateTime? originalDueDate,
-    DateTime? updatedDueDate,
-    MilestoneStatus? status,
-  ) {
-    return Milestone(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      originalDueDate: originalDueDate ?? this.originalDueDate,
-      updatedDueDate: updatedDueDate ?? this.updatedDueDate,
-      status: status ?? this.status,
-    );
-  }
-
-  factory Milestone.fromMap(Map<String, dynamic> map) {
-    return Milestone(
-      id: map["id"],
-      title: map["title"] ?? '',
-      originalDueDate: DateTime.parse(map["original_due_date"]),
-      updatedDueDate: map["updated_due_date"] != null
-          ? DateTime.parse(map["updated_due_date"])
-          : null,
-      status: MilestoneStatus.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => MilestoneStatus.onTrack,
-      ),
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'title': title,
-      'original_due_date': originalDueDate.toIso8601String(),
-      'updated_due_date': updatedDueDate?.toIso8601String(),
-      'status': status.name,
-    };
-  }
+  factory Milestone.fromJson(Map<String, dynamic> json) =>
+      _$MilestoneFromJson(json);
 }

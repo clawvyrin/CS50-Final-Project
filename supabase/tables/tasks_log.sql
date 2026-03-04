@@ -13,7 +13,10 @@ create table public.daily_tasks_reports (
     reported_at date default current_date
 );
 
-alter table public.tasks enable row level security;
+create index idx_daily_reports_user_id on public.daily_tasks_reports(user_id);
+create index idx_reports_activities_gin on public.daily_tasks_reports using gin (daily_activities);
+
+alter table public.daily_tasks_reports enable row level security;
 
 create policy "Assignees can manage their logs"
 on public.daily_tasks_reports for all

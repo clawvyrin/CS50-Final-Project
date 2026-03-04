@@ -4,14 +4,14 @@ import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/services/supabase_services.dart';
 
 final profileProvider = AsyncNotifierProvider.autoDispose
-    .family<ProfilesNotifier, Profiles, String>(ProfilesNotifier.new);
+    .family<ProfilesNotifier, Profile, String>(ProfilesNotifier.new);
 
-class ProfilesNotifier extends AsyncNotifier<Profiles> {
+class ProfilesNotifier extends AsyncNotifier<Profile> {
   ProfilesNotifier(this.id);
   String id;
 
   @override
-  FutureOr<Profiles> build() async =>
+  FutureOr<Profile> build() async =>
       await SupabaseServices().getProfileData(id);
 
   Future<void> refresh() async {

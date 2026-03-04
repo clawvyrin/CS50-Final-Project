@@ -12,20 +12,28 @@ alter table public.messages enable row level security;
 create policy "View messages in my conversations"
 on public.messages for select
 to authenticated
-using (
-    exists (
-        select 1 from public.conversation_participants 
-        where conversation_id = messages.conversation_id and user_id = auth.uid()
-    )
-);
+using ( is_conversation_participant(conversation_id, auth.uid()) );
 
-create policy "Only senders can manage their messages"
-on public.messages for insert, update, delete
+create policy "Only senders can send messages"
+on public.messages for insert
 to authenticated
 with check (
     sender_id = auth.uid() AND
-    exists (
-        select 1 from public.conversation_participants 
-        where conversation_id = messages.conversation_id and user_id = auth.uid()
-    )
+    is_conversation_participant(conversation_id, auth.uid())
+);
+
+create policy "Only senders can update their messages"
+on public.messages for update
+to authenticated
+using (
+    sender_id = auth.uid() AND
+    is_conversation_participant(conversation_id, auth.uid())
+);
+
+create policy "Only senders can delete their messages"
+on public.messages for delete
+to authenticated
+using (
+    sender_id = auth.uid() AND
+    is_conversation_participant(conversation_id, auth.uid())
 );

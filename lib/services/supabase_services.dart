@@ -115,7 +115,7 @@ class SupabaseServices {
           .eq("id", id)
           .maybeSingle();
 
-      if (result != null) return Profiles.fromMap(result);
+      if (result != null) return Profile.fromJson(result);
 
       return null;
     } catch (e, st) {

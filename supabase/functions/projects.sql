@@ -1,11 +1,41 @@
-create function public.on_project_created()
-return trigger as $$
+create or replace function public.is_project_member(p_id uuid, u_id uuid)
+returns boolean as $$
 begin
-    insert into public.project_members (id, project_id, user_id, role, status)
-    values (gen_random_uuid(), new.id, auth.uid(), 'admin', 'accepted');
+  return exists (
+    select 1 
+    from public.projects p
+    where p.id = p_id 
+    and (
+      p.owner_id = u_id 
+      or exists (
+        select 1 
+        from public.project_members pm 
+        where pm.project_id = p_id 
+        and pm.user_id = u_id 
+        and pm.status = any (array['accepted','left']::assignment_status[])
+      )
+    )
+  );
 end;
 $$ language plpgsql security definer;
 
-create trigger add_admin_as_project_member
-    after insert on public.projects
-    for each row execute function public.on_project_created();
+alter function public.is_project_member(uuid, uuid)
+set search_path = public;
+alter function public.is_project_member(uuid, uuid) stable;
+
+
+
+create or replace function public.is_project_owner(p_id uuid, u_id uuid)
+returns boolean as $$
+begin
+  return exists (
+        select 1 from projects
+        where projects.id = p_id
+        and projects.owner_id = u_id
+    );
+end;
+$$ language plpgsql security definer;
+
+alter function public.is_project_owner(uuid, uuid)
+set search_path = public;
+alter function public.is_project_owner(uuid, uuid) stable;

@@ -30,7 +30,6 @@ create trigger on_auth_user_changed
     for each row execute function public.handle_user_data();
 
 
--- La fonction qui synchronise l'email
 create or replace function public.handle_auth_email_update()
 returns trigger as $$
 begin
@@ -41,13 +40,11 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- Le trigger qui surveille les mises à jour dans la table interne de Supabase
 create trigger on_auth_email_updated
   after update of email on auth.users
   for each row execute function public.handle_auth_email_update();
 
 
--- La fonction qui définit la date actuelle
 create or replace function public.handle_update_timestamp()
 returns trigger as $$
 begin
@@ -56,8 +53,6 @@ begin
 end;
 $$ language plpgsql;
 
--- Le trigger qui s'active AVANT chaque update sur la table profiles
 create trigger on_profile_updated
     before update on public.profiles
     for each row execute function public.handle_update_timestamp();
-

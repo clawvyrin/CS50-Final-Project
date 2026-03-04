@@ -9,14 +9,11 @@ create table public.resources (
     created_at timestamptz default now()
 );
 
+create index idx_resources_project_id on public.resources(project_id);
 
 alter table public.resources enable row level security;
 
 create policy "Manage project resources"
 on public.resources for all
-using (
-  exists (
-    select 1 from public.projects 
-    where id = project_id and owner_id = auth.uid()
-  )
-);
+using ( is_project_owner(project_id, auth.uid()) )
+with check ( is_project_owner(project_id, auth.uid()) );

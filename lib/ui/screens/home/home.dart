@@ -17,7 +17,7 @@ class Home extends ConsumerStatefulWidget {
 }
 
 class _HomeState extends ConsumerState<Home> {
-  PreferredSizeWidget? _appBar(Profiles user) {
+  PreferredSizeWidget? _appBar(Profile user) {
     return AppBar(
       leading: Builder(
         builder: (context) => GestureDetector(
@@ -55,7 +55,7 @@ class _HomeState extends ConsumerState<Home> {
     );
   }
 
-  Drawer _drawer(Profiles user) {
+  Drawer _drawer(Profile user) {
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -96,7 +96,7 @@ class _HomeState extends ConsumerState<Home> {
     return ref
         .watch(profileProvider(SupabaseServices.id!))
         .when(
-          data: (Profiles user) {
+          data: (Profile user) {
             return Scaffold(
               appBar: _appBar(user),
               drawer: _drawer(user),

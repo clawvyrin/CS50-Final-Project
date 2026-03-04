@@ -1,10 +1,12 @@
 create table collaborators (
     requested_by uuid references public.profiles(id) on delete cascade not null,
     requested_to uuid references public.profiles(id) on delete cascade not null,
-    status  request_status default 'pending',
+    status request_status default 'pending',
     updated_at timestamp with time zone default timezone('utc'::text, now()),
-    created_at timestamp with time zone default timezone('utc'::text, now()) 
+    created_at timestamp with time zone default timezone('utc'::text, now()),
+    primary key (requested_by, requested_to)
 );
+
 
 alter table public.collaborators enable row level security;
 
@@ -18,7 +20,12 @@ on public.collaborators for insert
 to authenticated
 with check ( auth.uid() = requested_by );
 
-create policy "Users can update/delete their collaborations"
-on public.collaborators for update, delete
+create policy "Users can update their collaborations"
+on public.collaborators for update
+to authenticated
+using ( auth.uid() = requested_by OR auth.uid() = requested_to );
+
+create policy "Users can delete their collaborations"
+on public.collaborators for delete
 to authenticated
 using ( auth.uid() = requested_by OR auth.uid() = requested_to );

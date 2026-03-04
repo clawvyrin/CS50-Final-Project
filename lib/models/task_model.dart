@@ -1,67 +1,36 @@
-enum TaskStatus { todo, inProgress, done }
+import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:task_companion/models/activity_model.dart';
+import 'package:task_companion/models/enums.dart';
+import 'package:task_companion/models/resource_model.dart';
+import 'package:task_companion/models/task_dependency_model.dart';
+import 'package:task_companion/models/task_report_model.dart';
 
-class Task {
-  final String id;
-  final String projectId;
-  final String title;
-  final String? description;
-  final TaskStatus status;
-  final String? assignedTo;
-  final DateTime? dueDate;
+part 'task_model.freezed.dart';
+part 'task_model.g.dart';
 
-  Task({
-    required this.id,
-    required this.projectId,
-    required this.title,
-    this.description,
-    required this.status,
-    this.assignedTo,
-    this.dueDate,
-  });
-
-  Task copyWith(
-    String? id,
-    String? projectId,
-    String? title,
+@freezed
+abstract class Task with _$Task {
+  @JsonSerializable(explicitToJson: true)
+  const factory Task({
+    required String id,
+    @JsonKey(name: 'project_id') required String projectId,
+    required String title,
     String? description,
-    TaskStatus? status,
-    String? assignedTo,
-    DateTime? dueDate,
-  ) {
-    return Task(
-      id: id ?? this.id,
-      projectId: projectId ?? this.projectId,
-      title: title ?? this.title,
-      description: description ?? this.description,
-      status: status ?? this.status,
-      assignedTo: assignedTo ?? this.assignedTo,
-      dueDate: dueDate ?? this.dueDate,
-    );
-  }
+    required TaskStatus status,
+    @JsonKey(name: 'assigned_to') required String? assignedTo,
+    @JsonKey(name: 'work_days') @Default([]) List<Weekday>? workDays,
+    @JsonKey(name: 'shift_start_time')
+    @Default("08:00:00")
+    String? shiftStartTime,
+    @JsonKey(name: 'shift_end_time') @Default("18:00:00") String? shiftEndTime,
+    @JsonKey(name: 'affected_resources')
+    @Default([])
+    List<Resource>? affectedResources,
+    @Default([]) List<Activity>? activities,
+    @Default([]) List<DailyTaskReport>? reports,
+    @Default([]) List<TaskDependency>? dependencies,
+    @JsonKey(name: 'due_date') required DateTime dueDate,
+  }) = _Task;
 
-  factory Task.fromMap(Map<String, dynamic> map) {
-    return Task(
-      id: map['id'],
-      projectId: map['project_id'],
-      title: map['title'] ?? '',
-      description: map['description'],
-      status: TaskStatus.values.firstWhere(
-        (e) => e.name == map['status'],
-        orElse: () => TaskStatus.todo,
-      ),
-      assignedTo: map['assigned_to'],
-      dueDate: map['due_date'] != null ? DateTime.parse(map['due_date']) : null,
-    );
-  }
-
-  Map<String, dynamic> toMap() {
-    return {
-      'project_id': projectId,
-      'title': title,
-      'description': description,
-      'status': status.name, // Très important : envoyer le String
-      'assigned_to': assignedTo,
-      'due_date': dueDate?.toIso8601String(),
-    };
-  }
+  factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
 }

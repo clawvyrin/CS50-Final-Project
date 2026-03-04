@@ -7,7 +7,7 @@ begin
 end;
 $$ language plpgsql;
 
-create trigger on_project_created
+create trigger on_project_created_log_event
   after insert on public.projects
   for each row execute function log_new_project();
 
@@ -34,4 +34,4 @@ $$ language plpgsql;
 
 create trigger on_milestone_updated
   after update of status on public.milestones
-  for each row execute function log_milestone();
+  for each row execute function log_milestone_update();

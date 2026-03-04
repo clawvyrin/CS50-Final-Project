@@ -1,31 +1,21 @@
-class TimelineEvent {
-  final String id;
-  final String projectId;
-  final String userId;
-  final String actionType;
-  final String content;
-  final DateTime createdAt;
-  final Map<String, dynamic>? metadata;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  TimelineEvent({
-    required this.id,
-    required this.projectId,
-    required this.userId,
-    required this.actionType,
-    required this.content,
-    required this.createdAt,
-    this.metadata,
-  });
+part 'timeline_event_model.freezed.dart';
+part 'timeline_event_model.g.dart';
 
-  factory TimelineEvent.fromMap(Map<String, dynamic> map) {
-    return TimelineEvent(
-      id: map['id'],
-      projectId: map['project_id'],
-      userId: map['user_id'],
-      actionType: map['action_type'],
-      content: map['content'],
-      createdAt: DateTime.parse(map['created_at']),
-      metadata: map['metadata'],
-    );
-  }
+@freezed
+abstract class TimelineEvent with _$TimelineEvent {
+  @JsonSerializable(explicitToJson: true)
+  const factory TimelineEvent({
+    required String id,
+    @JsonKey(name: 'project_id') required String projectId,
+    @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'action_type') required String actionType,
+    required String content,
+    @JsonKey(name: 'meta_data') Map<String, dynamic>? metaData,
+    @JsonKey(name: 'created_at') required DateTime createdAt,
+  }) = _TimelineEvent;
+
+  factory TimelineEvent.fromJson(Map<String, dynamic> json) =>
+      _$TimelineEventFromJson(json);
 }

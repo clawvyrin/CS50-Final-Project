@@ -1,3 +1,4 @@
+import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,23 +25,19 @@ class _HomeState extends ConsumerState<Home> {
           onTap: () => Scaffold.of(context).openDrawer(),
           child: Padding(
             padding: EdgeInsetsGeometry.only(left: 10),
-            child: CircleAvatar(
-              radius: 30,
-              foregroundImage: NetworkImage(user.avatarUrl),
-            ),
+            child: FastCachedImage(url: user.avatarUrl),
           ),
         ),
       ),
       title: Text("Home"),
       actions: [
         PlatformIconButton(
-          onPressed: () async {
-            bool success = await SupabaseServices().signOut();
-            if (mounted && success) {
-              context.goNamed('auth');
-            }
-          },
-          icon: Icon(Icons.logout, color: Colors.red),
+          onPressed: () => context.goNamed('notifications'),
+          icon: Icon(Icons.notifications),
+        ),
+        PlatformIconButton(
+          onPressed: () => context.goNamed('search'),
+          icon: Icon(Icons.search),
         ),
       ],
     );
@@ -63,15 +60,16 @@ class _HomeState extends ConsumerState<Home> {
           UserAccountsDrawerHeader(
             accountName: Text(user.displayName),
             accountEmail: Text(user.email),
-            currentAccountPicture: CircleAvatar(
-              foregroundImage: NetworkImage(user.avatarUrl),
-            ),
+            currentAccountPicture: FastCachedImage(url: user.avatarUrl),
             decoration: BoxDecoration(color: Colors.deepPurple),
           ),
-          ListTile(
-            leading: Icon(PlatformIcons(context).settings),
-            title: const Text('Paramètres'),
-            onTap: () => {},
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: ListTile(
+              leading: Icon(PlatformIcons(context).settings),
+              title: const Text('Settings'),
+              onTap: () => context.goNamed('settings'),
+            ),
           ),
         ],
       ),

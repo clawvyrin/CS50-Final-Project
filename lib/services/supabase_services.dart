@@ -101,6 +101,22 @@ class SupabaseServices {
     }
   }
 
+  Future<bool> deleteAccount() async {
+    try {
+      appLogger.i("Attempt to delete account");
+      await supabase.rpc('delete_my_account');
+      return true;
+    } catch (e, st) {
+      appLogger.e(
+        "Error deleting account",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
   ///////////////////////////////////////////////////////
   ///                                                ///
   ///                    PROFILES                    ///
@@ -209,8 +225,9 @@ class SupabaseServices {
     }
   }
 
-  Future deleteProject() async {
-    try {} catch (e, st) {
+  Future deleteProject(String id) async {
+    try {
+    } catch (e, st) {
       appLogger.e(
         "Error deleting project",
         error: e,

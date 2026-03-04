@@ -1,25 +1,27 @@
 --------------------------------------------------
 --                                              --
---                      ENUMS                   --
+--                     ENUMS                    --
 --                                              --
 --------------------------------------------------
 
--- 1. TYPES ENUM (Toujours en premier)
+
+create type project_role as enum ('admin','editor','viewer');
+create type weekday as enum ('mon','tue','wed','thu','fri','sat','sun');
 create type public.project_status as enum ('hiatus', 'on_going', 'done');
 create type public.task_status as enum ('todo', 'in_progress', 'done');
 create type public.milestone_status as enum ('onTrack', 'achieved', 'postponed');
 create type public.request_status as enum ('accepted', 'pending', 'denied');
 create type public.assignment_status as enum ('accepted', 'pending', 'denied', 'left', 'removed');
+create type notification_status as enum ('accepted','pending','denied','read', 'archived', 'clicked', 'dismissed');
 
 
 ---------------------------------------------------
 --                                               --
---                      TABLES                   --
+--                    TABLES                     --
 --                                               --
 ---------------------------------------------------
 
 
--- 2. TABLES DE BASE
 create table public.profiles (
     id uuid references auth.users on delete cascade primary key,
     email text unique not null,
@@ -32,15 +34,14 @@ create table public.profiles (
     created_at timestamptz default now()
 );
 
-
 create table collaborators (
     requested_by uuid references public.profiles(id) on delete cascade not null,
     requested_to uuid references public.profiles(id) on delete cascade not null,
-    status  request_status default 'pending',
+    status request_status default 'pending',
     updated_at timestamp with time zone default timezone('utc'::text, now()),
-    created_at timestamp with time zone default timezone('utc'::text, now()) 
+    created_at timestamp with time zone default timezone('utc'::text, now()),
+    primary key (requested_by, requested_to)
 );
-
 
 create table public.projects (
     id uuid primary key default gen_random_uuid(),
@@ -52,7 +53,6 @@ create table public.projects (
     created_at timestamptz default now()
 );
 
--- 3. GESTION DES TÂCHES ET JALONS
 create table public.tasks (
     id uuid primary key default gen_random_uuid(),
     project_id uuid references public.projects(id) on delete cascade not null,
@@ -60,7 +60,7 @@ create table public.tasks (
     description text,
     status task_status default 'todo',
     assigned_to uuid references public.profiles(id),
-    work_days text[] default '{Monday, Tuesday, Wednesday, Thursday, Friday}',
+    work_days weekday[] default '{mon,tue,wed,thu,fri}',
     shift_start_time time default '08:00:00',
     shift_end_time time default '18:00:00',
     due_date timestamptz default now()
@@ -72,15 +72,15 @@ create table public.milestones (
     title text not null,
     original_due_date timestamptz not null,
     updated_due_date timestamptz,
-    status milestone_status default 'onTrack'
+    status milestone_status default 'onTrack',
+    created_at timestamptz default now()
 );
 
--- 4. COLLABORATION ET LOGS
 create table public.project_members (
     id uuid primary key default gen_random_uuid(),
     project_id uuid references public.projects(id) on delete cascade,
     user_id uuid references public.profiles(id) on delete cascade,
-    role text default 'viewer', 
+    role project_role default 'viewer', 
     status assignment_status default 'accepted',
     created_at timestamptz default now()
 );
@@ -100,7 +100,6 @@ create table public.daily_tasks_reports (
     reported_at date default current_date
 );
 
--- 5. RESSOURCES ET DÉPENDANCES
 create table public.resources (
     id uuid primary key default gen_random_uuid(),
     project_id uuid references public.projects(id) on delete cascade not null,
@@ -123,14 +122,13 @@ create table public.task_dependencies (
 create table public.activities (
     id uuid primary key default gen_random_uuid(),
     project_id uuid references public.projects(id) on delete cascade not null,
-    task_id uuid references public.tasks(id) on delete cascade, -- optionnel si l'activité est globale au projet
-    user_id uuid references public.profiles(id) default auth.uid(), -- Qui a fait l'activité ?
+    task_id uuid references public.tasks(id) on delete cascade,
+    user_id uuid references public.profiles(id) default auth.uid(),
     name text not null,
     description text,
     created_at timestamptz default now()
 );
 
--- Table de liaison pour les ressources impactées
 create table public.activity_resources (
     activity_id uuid references public.activities(id) on delete cascade,
     resource_id uuid references public.resources(id) on delete cascade,
@@ -138,11 +136,9 @@ create table public.activity_resources (
     primary key (activity_id, resource_id)
 );
 
-
--- 6. COMMUNICATION ET TIMELINE
 create table public.conversations (
     id uuid primary key default gen_random_uuid(),
-    project_id uuid references public.projects(id) on delete cascade not null,
+    project_id uuid references public.projects(id) on delete cascade,
     task_id uuid references public.tasks(id) on delete cascade,
     title text not null,
     created_at timestamptz default now()
@@ -173,13 +169,12 @@ create table public.timeline_events (
     created_at timestamptz default now()
 );
 
--- 7. NOTIFICATIONS
 create table public.notifications (
     id uuid primary key default gen_random_uuid(),
     type text not null,
     notifier_id uuid references public.profiles(id) on delete cascade not null,
     notified_id uuid references public.profiles(id) on delete cascade not null,
-    status request_status default 'pending',
+    status notification_status default 'pending',
     meta_data jsonb default '{}'::jsonb,
     seen_at timestamp with time zone default timezone('utc'::text, now()),
     created_at timestamp with time zone default timezone('utc'::text, now())
@@ -188,15 +183,112 @@ create table public.notifications (
 
 ---------------------------------------------------
 --                                               --
+--            CONSTRAINTS AND INDEXES            --
+--                                               --
+---------------------------------------------------
+
+create index on project_members(project_id, user_id);
+create index on projects(id, owner_id);
+create index idx_profiles_full_name on public.profiles(display_name);
+create index idx_tasks_project_id on public.tasks(project_id);
+create index idx_messages_conversation_date on public.messages(conversation_id, created_at desc);
+create index idx_project_members_user on public.project_members(user_id);
+create index idx_project_members_project on public.project_members(project_id);
+create index idx_milestones_project_id on public.milestones(project_id);
+create index idx_activities_project_id on public.activities(project_id);
+create index idx_resources_project_id on public.resources(project_id);
+create index idx_conversations_project_id on public.conversations(project_id);
+create index idx_timeline_project_id on public.timeline_events(project_id);
+create index idx_daily_reports_user_id on public.daily_tasks_reports(user_id);
+create index idx_notifications_notified_id on public.notifications(notified_id);
+create index idx_timeline_project_created on public.timeline_events(project_id, created_at desc);
+create index idx_reports_date on public.daily_tasks_reports(reported_at desc);
+create index idx_notifications_metadata_gin on public.notifications using gin (meta_data);
+create index idx_reports_activities_gin on public.daily_tasks_reports using gin (daily_activities);
+create unique index unique_task_conversationon on public.conversations(task_id) where task_id is not null;
+
+alter table public.project_members 
+add constraint unique_user_project unique (project_id, user_id);
+
+alter table public.task_dependencies 
+add constraint unique_task_dependency unique (task_id, depends_on_task_id);
+
+alter table public.resources 
+add constraint unique_resource_name_per_project unique (project_id, name);
+
+-----------------------------------------------------
+--                                                 --
+--                     FUNCTIONS                   --
+--                                                 --
+-----------------------------------------------------
+
+create or replace function public.is_project_member(p_id uuid, u_id uuid)
+returns boolean as $$
+begin
+  return exists (
+    select 1 
+    from public.projects p
+    where p.id = p_id 
+    and (
+      p.owner_id = u_id 
+      or exists (
+        select 1 
+        from public.project_members pm 
+        where pm.project_id = p_id 
+        and pm.user_id = u_id 
+        and pm.status = any (array['accepted','left']::assignment_status[])
+      )
+    )
+  );
+end;
+$$ language plpgsql security definer;
+
+alter function public.is_project_member(uuid, uuid)
+set search_path = public;
+alter function public.is_project_member(uuid, uuid) stable;
+
+
+create or replace function public.is_conversation_participant(c_id uuid, u_id uuid)
+returns boolean as $$
+begin
+  return exists (
+        select 1 from public.conversation_participants cp
+        where cp.conversation_id = c_id
+        and cp.user_id = u_id
+    );
+end;
+$$ language plpgsql security definer;
+
+alter function public.is_conversation_participant(uuid, uuid)
+set search_path = public;
+alter function public.is_conversation_participant(uuid, uuid) stable;
+
+
+create or replace function public.is_project_owner(p_id uuid, u_id uuid)
+returns boolean as $$
+begin
+  return exists (
+        select 1 from projects
+        where projects.id = p_id
+        and projects.owner_id = u_id
+    );
+end;
+$$ language plpgsql security definer;
+
+alter function public.is_project_owner(uuid, uuid)
+set search_path = public;
+alter function public.is_project_owner(uuid, uuid) stable;
+
+---------------------------------------------------
+--                                               --
 --                ROW LEVEL SECURITY             --
 --                                               --
 ---------------------------------------------------
 
 
-alter table public.profiles enable row level security;
-
-
 ------------------   PROFILES    ------------------
+
+alter table public.profiles enable row level security;
 
 create policy "Public profiles are viewable by everyone" 
 on public.profiles for select 
@@ -218,7 +310,6 @@ on public.profiles for delete
 to authenticated
 using ( auth.uid() = id );
 
-
 ------------------   COLLABORATORS   ------------------
 
 alter table public.collaborators enable row level security;
@@ -233,12 +324,15 @@ on public.collaborators for insert
 to authenticated
 with check ( auth.uid() = requested_by );
 
-create policy "Users can update/delete their collaborations"
-on public.collaborators for update, delete
+create policy "Users can update their collaborations"
+on public.collaborators for update
 to authenticated
 using ( auth.uid() = requested_by OR auth.uid() = requested_to );
 
-
+create policy "Users can delete their collaborations"
+on public.collaborators for delete
+to authenticated
+using ( auth.uid() = requested_by OR auth.uid() = requested_to );
 
 ------------------   PROJECTS   ------------------
 
@@ -247,32 +341,12 @@ alter table public.projects enable row level security;
 create policy "Users can view projects they are part of"
 on public.projects for select
 to authenticated
-using (
-  auth.uid() = owner_id 
-  OR exists (
-    select 1 from public.project_members 
-    where project_id = projects.id and user_id = auth.uid()
-  )
-);
+using (  is_project_member(id, auth.uid()) );
 
 create policy "Owners manage projects"
 on public.projects for all
 to authenticated
 using ( auth.uid() = owner_id );
-
--- PROJECT MEMBERS
-create policy "Members can see each other"
-on public.project_members for select
-to authenticated
-using (
-  exists (
-    select 1 from public.projects 
-    where id = project_id and (owner_id = auth.uid() OR exists (
-      select 1 from public.project_members pm where pm.project_id = projects.id and pm.user_id = auth.uid()
-    ))
-  )
-);
-
 
 ------------------   TASKS   ------------------
 
@@ -281,41 +355,23 @@ alter table public.tasks enable row level security;
 create policy "Project participants can view tasks"
 on public.tasks for select
 to authenticated
-using (
-  exists (
-    select 1 from public.projects 
-    where id = project_id and (owner_id = auth.uid() OR exists (
-      select 1 from public.project_members pm where pm.project_id = projects.id and pm.user_id = auth.uid()
-    ))
-  )
-);
+using ( is_project_member(project_id, auth.uid()) );
 
 create policy "Only project owners can manage tasks of their projects"
 on public.tasks for all
 to authenticated
-using (
-  exists (
-    select 1 from public.projects 
-    where id = tasks.project_id and owner_id = auth.uid()
-  )
-);
-
-
+using ( is_project_owner(project_id, auth.uid()) )
+with check ( is_project_owner(project_id, auth.uid()) );
 
 ------------------   MILESTONES   ------------------
 
 alter table public.milestones enable row level security;
 
-create policy "Users can manage milestones of their projects"
+create policy "Project owners can manage milestones of their projects"
 on public.milestones for all
 to authenticated
-using (
-  exists (
-    select 1 from public.projects 
-    where id = milestones.project_id and owner_id = auth.uid()
-  )
-);
-
+using ( is_project_owner(project_id, auth.uid()) )
+with check ( is_project_owner(project_id, auth.uid()) );
 
 ------------------   PROJECT MEMBERS   ------------------
 
@@ -324,24 +380,17 @@ alter table public.project_members enable row level security;
 create policy "Users can view members of projects they are part of"
 on public.project_members for select
 to authenticated
-using (
-   exists (
-    select 1 from public.projects 
-    where id = project_id and (owner_id = auth.uid() OR exists (
-      select 1 from public.project_members pm where pm.project_id = projects.id and pm.user_id = auth.uid()
-    ))
-  )
-);
+using (  is_project_member(project_id, auth.uid()) );
 
 create policy "Only project owners can manage their own projects members"
 on public.project_members for all
 to authenticated
-using ( auth.uid() = owner_id );
-
+using ( is_project_owner(project_id, auth.uid()) )
+with check ( is_project_owner(project_id, auth.uid()) );
 
 ------------------   DAILY TASK REPORTS   ------------------
 
-alter table public.tasks enable row level security;
+alter table public.daily_tasks_reports enable row level security;
 
 create policy "Assignees can manage their logs"
 on public.daily_tasks_reports for all
@@ -354,20 +403,14 @@ using (
     )
 );
 
-
 ------------------   RESSOURCES   ------------------
 
 alter table public.resources enable row level security;
 
 create policy "Manage project resources"
 on public.resources for all
-using (
-  exists (
-    select 1 from public.projects 
-    where id = project_id and owner_id = auth.uid()
-  )
-);
-
+using ( is_project_owner(project_id, auth.uid()) )
+with check ( is_project_owner(project_id, auth.uid()) );
 
 ------------------   RESSOURCES   ------------------
 
@@ -376,26 +419,13 @@ alter table public.task_dependencies enable row level security;
 create policy "Users can view tasks dependencies of project they are part of"
 on public.task_dependencies for select
 to authenticated
-using (
-    exists (
-    select 1 from public.projects 
-    where project_id = projects.id and (owner_id = auth.uid() OR exists (
-      select 1 from public.project_members pm where pm.project_id = projects.id and pm.user_id = auth.uid()
-    ))
-  )
-);
+using ( is_project_member(project_id, auth.uid()) );
 
 create policy "Only project owners can manage tasks dependencies"
 on public.task_dependencies for all
 to authenticated
-using (
-    exists (
-        select 1 from projects
-        where projects.id = project_id
-        and projects.owner_id = auth.uid()
-    )
-);
-
+using ( is_project_owner(project_id, auth.uid()) )
+with check ( is_project_owner(project_id, auth.uid()) );
 
 ------------------   CONVERSATIONS   ------------------
 
@@ -404,13 +434,7 @@ alter table public.conversations enable row level security;
 create policy "Participants can view conversations"
 on public.conversations for select
 to authenticated
-using (
-    exists (
-        select 1 from public.conversation_participants 
-        where conversation_id = conversations.id and user_id = auth.uid()
-    )
-);
-
+using ( is_conversation_participant(id, auth.uid()) );
 
 ------------------   CONVERSATIONS PARTICIPANTS   ------------------
 
@@ -419,14 +443,7 @@ alter table public.conversation_participants enable row level security;
 create policy "View fellow participants"
 on public.conversation_participants for select
 to authenticated
-using (
-    exists (
-        select 1 from public.conversation_participants cp
-        where cp.conversation_id = conversation_participants.conversation_id 
-        and cp.user_id = auth.uid()
-    )
-);
-
+using ( is_conversation_participant(conversation_id, auth.uid()) );
 
 ------------------   MESSAGES   ------------------
 
@@ -435,36 +452,41 @@ alter table public.messages enable row level security;
 create policy "View messages in my conversations"
 on public.messages for select
 to authenticated
-using (
-    exists (
-        select 1 from public.conversation_participants 
-        where conversation_id = messages.conversation_id and user_id = auth.uid()
-    )
-);
+using ( is_conversation_participant(conversation_id, auth.uid()) );
 
-create policy "Only senders can manage their messages"
-on public.messages for insert, update, delete
+create policy "Only senders can send messages"
+on public.messages for insert
 to authenticated
 with check (
     sender_id = auth.uid() AND
-    exists (
-        select 1 from public.conversation_participants 
-        where conversation_id = messages.conversation_id and user_id = auth.uid()
-    )
+    is_conversation_participant(conversation_id, auth.uid())
 );
 
+create policy "Only senders can update their messages"
+on public.messages for update
+to authenticated
+using (
+    sender_id = auth.uid() AND
+    is_conversation_participant(conversation_id, auth.uid())
+);
+
+create policy "Only senders can delete their messages"
+on public.messages for delete
+to authenticated
+using (
+    sender_id = auth.uid() AND
+    is_conversation_participant(conversation_id, auth.uid())
+);
 
 ------------------   NOTIFICATIONS   ------------------
 
 alter table public.notifications enable row level security;
 
 create policy "Users can manage notifications they receive"
-on public.notifications for select, update, delete
+on public.notifications for all
 to authenticated
-using (
-    auth.uid() = notified_id
-);
-
+using ( auth.uid() = notified_id )
+with check ( auth.uid() = notified_id );
 
 
 -----------------------------------------------------
@@ -472,8 +494,6 @@ using (
 --                      TRIGGERS                   --
 --                                                 --
 -----------------------------------------------------
-
-
 
 ------------------   PROFILES   ------------------
 
@@ -536,12 +556,12 @@ create trigger on_profile_updated
     before update on public.profiles
     for each row execute function public.handle_update_timestamp();
 
-
-
 ------------------   PROJECT MEMBERS   ------------------
 
 create or replace function public.on_project_task_accepted()
 returns trigger as $$
+declare 
+    conv_id uuid;
 begin
     if new.status = 'accepted' then
         -- Insertion membre
@@ -551,23 +571,27 @@ begin
             new.notified_id, 
             coalesce(new.meta_data->>'role', 'viewer'), 
             'accepted'
-        );
+        ) 
+        on conflict (project_id, user_id) do nothing;
 
         -- Insertion conversation (on utilise l'ID de la tâche comme ID de conv)
-        insert into public.conversations (id, project_id, task_id, title)
+        insert into public.conversations (project_id, task_id, title)
         values (
-            (new.meta_data->>'task_id')::uuid, 
             (new.meta_data->>'project_id')::uuid,
             (new.meta_data->>'task_id')::uuid,
             new.meta_data->>'task_title'
-        ) on conflict (id) do nothing;
+        ) 
+        on conflict (task_id) do update set title = excluded.title
+        returning id into conv_id;
 
         -- Participants
-        insert into public.conversation_participants (user_id, conversation_id)
-        values 
-            (new.notifier_id, (new.meta_data->>'task_id')::uuid),
-            (new.notified_id, (new.meta_data->>'task_id')::uuid)
-        on conflict do nothing;
+        if conv_id is not null then
+            insert into public.conversation_participants (user_id, conversation_id)
+            values 
+                (new.notifier_id, conv_id),
+                (new.notified_id, conv_id)
+            on conflict (conversation_id, user_id) do nothing;
+        end if;
     end if;
     return new;
 end;
@@ -575,22 +599,28 @@ $$ language plpgsql security definer;
 
 create trigger add_task_assignee_as_project_member
     after update of status on public.notifications
-    where type = 'task_assignement'
-    for each row execute function public.on_project_task_accepted();
+    for each row 
+    when (
+        NEW.type = 'task_assignment'
+        and NEW.status = 'accepted'
+        and OLD.status is distinct from 'accepted'
+    )
+    execute function public.on_project_task_accepted();
 
 ------------------   PROJECTS   ------------------
 
-create or replace function public.on_project_created()
+create or replace function public.add_admin_as_project_member()
 returns trigger as $$
 begin
     insert into public.project_members (id, project_id, user_id, role, status)
     values (gen_random_uuid(), new.id, auth.uid(), 'admin', 'accepted');
+    return new;
 end;
 $$ language plpgsql security definer;
 
-create trigger add_admin_as_project_member
+create trigger on_project_created_add_admin
     after insert on public.projects
-    for each row execute function public.on_project_created();
+    for each row execute function public.add_admin_as_project_member();
     
 ------------------   RESSOURCES   ------------------
 
@@ -672,23 +702,27 @@ create trigger on_task_created
 
 create or replace function public.send_task_log_message()
 returns trigger as $$
+declare 
+    conv_id uuid;
 begin
-    insert into public.messages (conversation_id, sender_id, content, metdata)
+    select id into conv_id
+    from public.conversations
+    where task_id = new.task_id;
+
+    insert into public.messages (conversation_id, sender_id, content, meta_data)
     values (
-        new.task_id,
-        auth.uid(),
-        'A daily summary has been uploaded',
-        jsonb_build_object(
-            "id": new.id,
-        )
+        conv_id,
+        new.user_id,
+        'A new daily report has been uploaded',
+        jsonb_build_object('report_id', new.id)
     );
+    return new;
 end;
 $$ language plpgsql security definer;
 
 create trigger on_task_log_created
     after insert on public.daily_tasks_reports
     for each row execute function public.send_task_log_message();
-
 
 ------------------   TIMELINE EVENTS   ------------------
 
@@ -701,7 +735,7 @@ begin
 end;
 $$ language plpgsql;
 
-create trigger on_project_created
+create trigger on_project_created_log_event
   after insert on public.projects
   for each row execute function log_new_project();
 
@@ -728,4 +762,4 @@ $$ language plpgsql;
 
 create trigger on_milestone_updated
   after update of status on public.milestones
-  for each row execute function log_milestone();
+  for each row execute function log_milestone_update();

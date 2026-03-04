@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/logger.dart';
 import 'package:task_companion/models/profile_model.dart';
+import 'package:task_companion/models/project_model.dart';
 import 'package:task_companion/services/router_services.dart';
 
 final supabaseProvider =
@@ -203,14 +204,17 @@ class SupabaseServices {
   ///                                                ///
   //////////////////////////////////////////////////////
 
-  Future getUserProjects() async {
-    try {} catch (e, st) {
+  Future<List<Project>> getUserProjects() async {
+    try {
+      return [];
+    } catch (e, st) {
       appLogger.e(
         "Error getting user projects",
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),
       );
+      return [];
     }
   }
 
@@ -226,8 +230,7 @@ class SupabaseServices {
   }
 
   Future deleteProject(String id) async {
-    try {
-    } catch (e, st) {
+    try {} catch (e, st) {
       appLogger.e(
         "Error deleting project",
         error: e,

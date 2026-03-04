@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:task_companion/services/supabase_services.dart';
-import 'package:task_companion/ui/widgets/delete_account.dart';
+import 'package:task_companion/ui/widgets/settings/delete_account.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});

@@ -6,7 +6,9 @@ import 'package:go_router/go_router.dart';
 import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/providers/profiles_provider.dart';
 import 'package:task_companion/services/supabase_services.dart';
-import 'package:task_companion/ui/widgets/create_project.dart';
+import 'package:task_companion/ui/widgets/home/home_drawer_menu.dart';
+import 'package:task_companion/ui/widgets/home/project_list.dart';
+import 'package:task_companion/ui/widgets/projects/create_project.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
 
@@ -43,39 +45,6 @@ class _HomeState extends ConsumerState<Home> {
     );
   }
 
-  Widget _projectList() {
-    return ListView.builder(
-      itemCount: 0,
-      itemBuilder: (data, index) {
-        return ListTile(title: Text("$index"));
-      },
-    );
-  }
-
-  Drawer _drawer(Profile user) {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(user.displayName),
-            accountEmail: Text(user.email),
-            currentAccountPicture: FastCachedImage(url: user.avatarUrl),
-            decoration: BoxDecoration(color: Colors.deepPurple),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: ListTile(
-              leading: Icon(PlatformIcons(context).settings),
-              title: const Text('Settings'),
-              onTap: () => context.goNamed('settings'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _createNewProject(BuildContext context) {
     final nameController = TextEditingController();
     final descController = TextEditingController();
@@ -97,13 +66,8 @@ class _HomeState extends ConsumerState<Home> {
           data: (Profile user) {
             return Scaffold(
               appBar: _appBar(user),
-              drawer: _drawer(user),
-              body: RefreshIndicator(
-                onRefresh: () async {
-                  ref.invalidate(profileProvider(SupabaseServices.id!));
-                },
-                child: _projectList(),
-              ),
+              drawer: HomeDrawerMenu(user: user),
+              body: ProjectList(),
               floatingActionButton: FloatingActionButton(
                 onPressed: () => _createNewProject(context),
                 child: const Icon(Icons.add),

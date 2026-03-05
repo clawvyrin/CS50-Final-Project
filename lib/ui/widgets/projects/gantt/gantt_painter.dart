@@ -59,6 +59,58 @@ class GanttPainter extends CustomPainter {
         Offset(size.width, yOffset + 25),
         paintLine,
       );
+
+      // --- 5. DESSIN DES DÉPENDANCES (FLÈCHES) ---
+      final arrowPaint = Paint()
+        ..color = Colors.black54
+        ..strokeWidth = 1.5
+        ..style = PaintingStyle.stroke;
+
+      for (int i = 0; i < tasks.length; i++) {
+        final task = tasks[i];
+        if (task.dependencies == null || task.dependencies!.isEmpty) continue;
+
+        for (var dep in task.dependencies!) {
+          // Trouver l'index de la tâche parente
+          final parentIndex = tasks.indexWhere(
+            (t) => t.id == dep.dependsOnTaskId,
+          );
+          if (parentIndex == -1) continue;
+
+          // Coordonnées de la tâche parente (Fin de barre)
+          final parentTask = tasks[parentIndex];
+          final parentStart = parentTask.dueDate.subtract(
+            const Duration(days: 3),
+          );
+          final parentX =
+              (parentStart.difference(projectStartDate).inDays + 3) * dayWidth;
+          final parentY =
+              parentIndex * rowHeight + 20 + 10; // Milieu de la barre
+
+          // Coordonnées de la tâche enfant (Début de barre)
+          final childStart = task.dueDate.subtract(const Duration(days: 3));
+          final childX =
+              childStart.difference(projectStartDate).inDays * dayWidth;
+          final childY = i * rowHeight + 20 + 10;
+
+          // Dessiner une ligne brisée (Chemin en "L" ou "Z")
+          final path = Path()
+            ..moveTo(parentX, parentY)
+            ..lineTo(parentX + 10, parentY) // Petite sortie horizontale
+            ..lineTo(parentX + 10, childY) // Descente verticale
+            ..lineTo(childX, childY); // Entrée horizontale
+
+          canvas.drawPath(path, arrowPaint);
+
+          // Optionnel : Dessiner la pointe de la flèche
+          final arrowHead = Path()
+            ..moveTo(childX, childY)
+            ..lineTo(childX - 5, childY - 3)
+            ..lineTo(childX - 5, childY + 3)
+            ..close();
+          canvas.drawPath(arrowHead, Paint()..color = Colors.black54);
+        }
+      }
     }
   }
 

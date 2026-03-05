@@ -95,9 +95,11 @@ class DailyReportDetailsDialog extends ConsumerWidget {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur lors de la certification : $e")),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erreur lors de la certification : $e")),
+        );
+      }
     }
   }
 

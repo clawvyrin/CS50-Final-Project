@@ -54,8 +54,8 @@ class ProjectFloatingActionButton extends ConsumerWidget {
                       (m) => DropdownMenuItem(
                         value: m.userId,
                         child: ListTile(
-                          leading: FastCachedImage(url: m.avatarUrl),
-                          title: Text(m.displayName),
+                          leading: FastCachedImage(url: m.profile.avatarUrl),
+                          title: Text(m.profile.displayName),
                         ),
                       ),
                     )

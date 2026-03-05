@@ -95,7 +95,7 @@ class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
                           children: [
                             TasksTab(tasks: project.tasks ?? []),
                             TimelineTab(events: project.timeline ?? []),
-                            MembersTab(members: project.members ?? []),
+                            MembersTab(projectId: project.id),
                           ],
                         ),
                       ),

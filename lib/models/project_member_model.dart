@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:task_companion/models/enums.dart';
+import 'package:task_companion/models/profile_model.dart';
 
 part 'project_member_model.freezed.dart';
 part 'project_member_model.g.dart';
@@ -11,8 +12,7 @@ abstract class ProjectMember with _$ProjectMember {
     required String id,
     @JsonKey(name: 'project_id') required String projectId,
     @JsonKey(name: 'user_id') required String userId,
-    @JsonKey(name: 'display_name') required String displayName,
-    @JsonKey(name: 'avatar_url') required String avatarUrl,
+    required Profile profile,
     @JsonKey(name: 'job_description') required String jobDescrpition,
     required ProjectRole role,
     required AssignmentStatus status,

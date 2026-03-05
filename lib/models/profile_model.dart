@@ -5,6 +5,7 @@ part 'profile_model.g.dart';
 
 @freezed
 abstract class Profile with _$Profile {
+  @JsonSerializable(explicitToJson: true)
   const factory Profile({
     required String id,
     required String email,

@@ -35,6 +35,7 @@ abstract class Task with _$Task {
     @Default([]) List<DailyTaskReport>? reports,
     @Default([]) List<TaskDependency>? dependencies,
     @JsonKey(name: 'due_date') required DateTime dueDate,
+    @JsonKey(name: 'pending_reports_count') required int pendingReportsCount,
   }) = _Task;
 
   factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);

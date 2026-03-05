@@ -1,38 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:task_companion/models/enums.dart';
 import 'package:task_companion/models/task_model.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
-  const TaskCard({super.key, required this.task});
+  final VoidCallback onTap;
+
+  const TaskCard({super.key, required this.task, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      child: ListTile(
-        leading: _buildStatusIcon(task.status),
-        title: Text(
-          task.title,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text("Échéance : ${task.dueDate.day}/${task.dueDate.month}"),
-        trailing: CircleAvatar(
-          radius: 14,
-          backgroundImage: task.assigneeAvatarUrl != null
-              ? NetworkImage(task.assigneeAvatarUrl!)
-              : null,
-          child: task.assigneeAvatarUrl == null
-              ? const Icon(Icons.person, size: 16)
-              : null,
-        ),
+    return InkWell(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Card(
+            elevation: 2,
+            child: ListTile(
+              title: Text(task.title),
+              subtitle: Text(
+                "Assigné à : ${task.assigneeDisplayName ?? 'Personne'}",
+              ),
+              trailing: const Icon(Icons.chevron_right),
+            ),
+          ),
+          Positioned(
+            top: -5,
+            right: -5,
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+              child: Text(
+                '${task.pendingReportsCount}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
       ),
     );
-  }
-
-  Widget _buildStatusIcon(TaskStatus status) {
-    // Une petite pastille de couleur selon le statut
-    final color = status == TaskStatus.done ? Colors.green : Colors.orange;
-    return Icon(Icons.check_circle_outline, color: color);
   }
 }

@@ -1,11 +1,87 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_companion/providers/project_providers.dart';
+import 'package:task_companion/ui/widgets/projects/gantt_chart.dart';
+import 'package:task_companion/ui/widgets/projects/milestone_row.dart';
+import 'package:task_companion/ui/widgets/projects/tabs/activities_tab.dart';
+import 'package:task_companion/ui/widgets/projects/tabs/resources_tab.dart';
+import 'package:task_companion/ui/widgets/projects/tabs/tasks_tabs.dart';
 
 class ProjectDashboard extends ConsumerWidget {
-  const ProjectDashboard({super.key});
+  final String projectId;
+  const ProjectDashboard({super.key, required this.projectId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Placeholder();
+    final projectAsync = ref.watch(projectDetailsProvider(projectId));
+
+    return projectAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) =>
+          Scaffold(body: Center(child: Text('Erreur: $err'))),
+      data: (project) => project == null
+          ? Container()
+          : DefaultTabController(
+              length: 3,
+              child: Scaffold(
+                appBar: AppBar(
+                  title: ListTile(
+                    title: Text(
+                      project.name,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    subtitle: project.description != null
+                        ? Text(
+                            project.description!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.normal,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          )
+                        : Container(),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.search),
+                      onPressed: () {},
+                    ),
+                    IconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+                  ],
+                  bottom: const TabBar(
+                    tabs: [
+                      Tab(text: 'Tâches', icon: Icon(Icons.list)),
+                      Tab(text: 'Activités', icon: Icon(Icons.history)),
+                      Tab(text: 'Ressources', icon: Icon(Icons.inventory_2)),
+                    ],
+                  ),
+                ),
+                body: Column(
+                  children: [
+                    SizedBox(
+                      height: 200,
+                      child: GanttChartWidget(tasks: project.tasks ?? []),
+                    ),
+                    MilestoneRow(milestones: project.milestones ?? []),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          TasksTab(tasks: project.tasks ?? []),
+                          ActivitiesTab(activities: project.activities ?? []),
+                          ResourcesTab(resources: project.resources ?? []),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
   }
 }

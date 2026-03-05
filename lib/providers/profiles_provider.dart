@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/services/profile_services.dart';
 
+final profileServiceProvider = Provider<ProfileServices>((ref) {
+  return ProfileServices();
+});
+
 final profileProvider = AsyncNotifierProvider.autoDispose
     .family<ProfilesNotifier, Profile, String>(ProfilesNotifier.new);
 
@@ -11,7 +15,8 @@ class ProfilesNotifier extends AsyncNotifier<Profile> {
   String id;
 
   @override
-  FutureOr<Profile> build() async => await ProfileServices().getProfileData(id);
+  FutureOr<Profile> build() async =>
+      await ref.read(profileServiceProvider).getProfileData(id);
 
   Future<void> refresh() async {
     state = const AsyncLoading();

@@ -18,12 +18,7 @@ class ProjectList extends ConsumerWidget {
             return ListView.builder(
               itemCount: projects.length,
               itemBuilder: (context, index) {
-                return ProjectCard(
-                  project: projects[index],
-                  onTap: () {
-                    // Prochaine étape : Navigation vers le détail
-                  },
-                );
+                return ProjectCard(project: projects[index]);
               },
             );
           },

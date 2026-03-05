@@ -74,10 +74,11 @@ class AppRouter {
         builder: (context, state) => const Home(),
         routes: [
           GoRoute(
-            path: 'project_dashboard',
+            path: 'project_dashboard/:id',
             name: 'project_dashboard',
             builder: (context, state) {
-              return ProjectDashboard();
+              final projectId = state.pathParameters['projectId'];
+              return ProjectDashboard(projectId: projectId!);
             },
           ),
           GoRoute(

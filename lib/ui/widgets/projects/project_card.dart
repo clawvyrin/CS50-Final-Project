@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:task_companion/models/project_model.dart';
 
 class ProjectCard extends StatelessWidget {
   final Project project;
-  final VoidCallback onTap;
-
-  const ProjectCard({super.key, required this.project, required this.onTap});
+  const ProjectCard({super.key, required this.project});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +21,12 @@ class ProjectCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          context.goNamed(
+            "project_dashboard",
+            pathParameters: {"projectId": project.id},
+          );
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),

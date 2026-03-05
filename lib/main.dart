@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_companion/providers/theme_provider.dart';
 import 'package:task_companion/services/router_services.dart';
 
 void main() async {
@@ -17,11 +18,15 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
     return PlatformProvider(
-      builder: (context) => PlatformApp.router(
-        title: "Task Companion",
-        debugShowCheckedModeBanner: false,
-        routerConfig: ref.watch(routerProvider),
+      builder: (context) => PlatformTheme(
+        themeMode: themeMode,
+        builder: (context) => PlatformApp.router(
+          title: "Task Companion",
+          debugShowCheckedModeBanner: false,
+          routerConfig: ref.watch(routerProvider),
+        ),
       ),
     );
   }

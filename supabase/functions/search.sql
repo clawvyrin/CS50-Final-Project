@@ -1,19 +1,30 @@
--- RECHERCHE COLLABORATEURS
 create or replace function public.search_my_collaborators(p_query text)
-returns setof public.profiles as $$
+returns table (
+    id uuid,
+    display_name text,
+    avatar_url text,
+    conversation_id uuid
+) as $$
 begin
     return query
-    select p.* from public.profiles p
-    where p.id in (
-        select distinct pm2.user_id 
-        from public.project_members pm1
-        join public.project_members pm2 on pm1.project_id = pm2.project_id
-        where pm1.user_id = auth.uid() and pm2.user_id != auth.uid()
+    select 
+        p.id, 
+        p.display_name, 
+        p.avatar_url,
+        cm.conversation_id
+    from public.profiles p
+    join public.conversation_members cm on cm.user_id = p.id
+    where cm.conversation_id in (
+        select conv_m.conversation_id 
+        from public.conversation_members conv_m
+        join public.conversations c on conv_m.conversation_id = c.id
+        where conv_m.user_id = auth.uid() 
+        and c.type = 'dm'
     )
+    and p.id != auth.uid()
     and p.display_name ilike '%' || p_query || '%';
 end; $$ language plpgsql;
 
--- RECHERCHE PROJETS
 create or replace function public.search_my_projects(p_query text)
 returns setof public.projects as $$
 begin

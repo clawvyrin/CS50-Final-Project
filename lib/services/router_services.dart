@@ -113,7 +113,7 @@ class AppRouter {
           GoRoute(
             path: 'notifications',
             name: 'notifications',
-            builder: (context, state) => Notifications(),
+            builder: (context, state) => NotificationsPage(),
           ),
           GoRoute(
             path: 'search',

@@ -33,9 +33,22 @@ class _HomeState extends ConsumerState<Home> {
       ),
       title: Text("Home"),
       actions: [
-        PlatformIconButton(
-          onPressed: () => context.goNamed('notifications'),
-          icon: Icon(Icons.notifications),
+        Stack(
+          children: [
+            PlatformIconButton(
+              onPressed: () => context.goNamed('notifications'),
+              icon: Icon(Icons.notifications),
+            ),
+            Positioned(
+              right: 8,
+              top: 8,
+              child: CircleAvatar(
+                radius: 8,
+                backgroundColor: Colors.red,
+                child: Text('9', style: const TextStyle(fontSize: 10)),
+              ),
+            ),
+          ],
         ),
         PlatformIconButton(
           onPressed: () => context.goNamed('search'),

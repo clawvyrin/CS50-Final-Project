@@ -4,8 +4,10 @@ import 'package:task_companion/providers/project_providers.dart';
 import 'package:task_companion/ui/widgets/projects/gantt_chart.dart';
 import 'package:task_companion/ui/widgets/projects/milestone_row.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/activities_tab.dart';
+import 'package:task_companion/ui/widgets/projects/tabs/members_tab.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/resources_tab.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/tasks_tabs.dart';
+import 'package:task_companion/ui/widgets/projects/tabs/timeline_tab.dart';
 
 class ProjectDashboard extends ConsumerWidget {
   final String projectId;
@@ -55,9 +57,11 @@ class ProjectDashboard extends ConsumerWidget {
                   ],
                   bottom: const TabBar(
                     tabs: [
-                      Tab(text: 'Tâches', icon: Icon(Icons.list)),
-                      Tab(text: 'Activités', icon: Icon(Icons.history)),
-                      Tab(text: 'Ressources', icon: Icon(Icons.inventory_2)),
+                      Tab(text: 'Tasks', icon: Icon(Icons.list)),
+                      Tab(text: 'Activities', icon: Icon(Icons.history)),
+                      Tab(text: 'Resources', icon: Icon(Icons.inventory_2)),
+                      Tab(text: 'Timeline', icon: Icon(Icons.timeline)),
+                      Tab(text: 'Team', icon: Icon(Icons.group)),
                     ],
                   ),
                 ),
@@ -75,6 +79,8 @@ class ProjectDashboard extends ConsumerWidget {
                           TasksTab(tasks: project.tasks ?? []),
                           ActivitiesTab(activities: project.activities ?? []),
                           ResourcesTab(resources: project.resources ?? []),
+                          TimelineTab(events: project.timeline ?? []),
+                          MembersTab(members: project.members ?? []),
                         ],
                       ),
                     ),

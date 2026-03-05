@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/providers/project_providers.dart';
 import 'package:task_companion/ui/widgets/projects/dynamic_floating_action_button.dart';
-import 'package:task_companion/ui/widgets/projects/gantt_chart.dart';
+import 'package:task_companion/ui/widgets/projects/gantt/gantt_chart.dart';
 import 'package:task_companion/ui/widgets/projects/milestone_row.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/activities_tab.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/members_tab.dart';
@@ -18,7 +18,8 @@ class ProjectDashboard extends ConsumerStatefulWidget {
   ConsumerState<ProjectDashboard> createState() => _ProjectDashboardState();
 }
 
-class _ProjectDashboardState extends ConsumerState<ProjectDashboard> {
+class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override

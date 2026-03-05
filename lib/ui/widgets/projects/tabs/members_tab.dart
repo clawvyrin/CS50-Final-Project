@@ -14,9 +14,7 @@ class MembersTab extends StatelessWidget {
         final member = members[index];
         return ListTile(
           leading: const CircleAvatar(child: Icon(Icons.person)),
-          title: Text(
-            "ID Utilisateur: ${member.userId.substring(0, 8)}...",
-          ), // À remplacer par le nom si jointure faite
+          title: Text(member.displayName.substring(0, 8)),
           subtitle: Text("Rôle: ${member.role.name}"),
           trailing: Chip(
             label: Text(

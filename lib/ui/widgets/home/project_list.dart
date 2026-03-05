@@ -5,7 +5,7 @@ import 'package:task_companion/providers/project_list_providers.dart';
 import 'package:task_companion/services/supabase_services.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
-import 'package:task_companion/ui/widgets/projects/project_tile.dart';
+import 'package:task_companion/ui/widgets/projects/project_card.dart';
 
 class ProjectList extends ConsumerWidget {
   const ProjectList({super.key});
@@ -18,7 +18,12 @@ class ProjectList extends ConsumerWidget {
             return ListView.builder(
               itemCount: projects.length,
               itemBuilder: (context, index) {
-                return ProjectTile(project: projects[index]);
+                return ProjectCard(
+                  project: projects[index],
+                  onTap: () {
+                    // Prochaine étape : Navigation vers le détail
+                  },
+                );
               },
             );
           },

@@ -204,9 +204,21 @@ class SupabaseServices {
   ///                                                ///
   //////////////////////////////////////////////////////
 
-  Future<List<Project>> getUserProjects() async {
+  Future<List<Project>> getUserProjects({
+    DateTime? anchor,
+    int limit = 10,
+  }) async {
     try {
-      return [];
+      appLogger.i("Attempt to fetch user projects");
+
+      final timestamp =
+          anchor?.toIso8601String() ?? DateTime.now().toIso8601String();
+
+      final List<dynamic> response = await supabase.rpc(
+        'get_user_projects',
+        params: {'anchor': timestamp, 'n_projects': limit},
+      );
+      return response.map((json) => Project.fromJson(json)).toList();
     } catch (e, st) {
       appLogger.e(
         "Error getting user projects",
@@ -218,19 +230,33 @@ class SupabaseServices {
     }
   }
 
-  Future createProject(String name, String description) async {
-    try {} catch (e, st) {
+  Future<Project?> createProject(String name, String description) async {
+    try {
+      appLogger.i("Attempt to create project");
+
+      final response = await supabase.rpc(
+        'create_project',
+        params: {'p_name': name, 'p_desc': description},
+      );
+
+      return Project.fromJson(response);
+    } catch (e, st) {
       appLogger.e(
         "Error creating project",
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),
       );
+      return null;
     }
   }
 
   Future deleteProject(String id) async {
-    try {} catch (e, st) {
+    try {
+      appLogger.i("Attempt to delete project");
+
+      await supabase.rpc('create_project', params: {'p_id': id});
+    } catch (e, st) {
       appLogger.e(
         "Error deleting project",
         error: e,
@@ -240,8 +266,15 @@ class SupabaseServices {
     }
   }
 
-  Future editProject() async {
-    try {} catch (e, st) {
+  Future editProject(Project updatedProject) async {
+    try {
+      appLogger.i("Attempt to edit project");
+
+      await supabase.rpc(
+        'create_project',
+        params: {'updated_project': updatedProject},
+      );
+    } catch (e, st) {
       appLogger.e(
         "Error editing project",
         error: e,
@@ -256,6 +289,21 @@ class SupabaseServices {
   ///                    TASKS                       ///
   ///                                                ///
   //////////////////////////////////////////////////////
+
+  Future createTask(String projectId) async {
+    try {
+      appLogger.i("Attempt to edit project");
+
+      await supabase.rpc('create_project', params: {'p_id': id});
+    } catch (e, st) {
+      appLogger.e(
+        "Error editing project",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+    }
+  }
 
   ///////////////////////////////////////////////////////
   ///                                                ///

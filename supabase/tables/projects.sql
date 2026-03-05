@@ -8,6 +8,9 @@ create table public.projects (
     owner_id uuid references public.profiles(id) on delete cascade not null default auth.uid(),
     status project_status default 'on_going',
     background_picture_url text,
+    start_date date,
+    end_date date,
+    updated_at timestamptz default now(),
     created_at timestamptz default now()
 );
 

@@ -8,7 +8,8 @@ import 'package:task_companion/ui/screens/authentication/auth_method.dart';
 import 'package:task_companion/ui/screens/authentication/sign_in.dart';
 import 'package:task_companion/ui/screens/home/home.dart';
 import 'package:task_companion/ui/screens/authentication/sign_up.dart';
-import 'package:task_companion/ui/screens/home/notifications.dart';
+import 'package:task_companion/ui/screens/notifications/notifications.dart';
+import 'package:task_companion/ui/screens/projects/project_dashboard.dart';
 import 'package:task_companion/ui/screens/search/search.dart';
 import 'package:task_companion/ui/screens/search/search_results.dart';
 import 'package:task_companion/ui/screens/settings/settings.dart';
@@ -72,6 +73,13 @@ class AppRouter {
         name: 'home',
         builder: (context, state) => const Home(),
         routes: [
+          GoRoute(
+            path: 'project_dashboard',
+            name: 'project_dashboard',
+            builder: (context, state) {
+              return ProjectDashboard();
+            },
+          ),
           GoRoute(
             path: 'notifications',
             name: 'notifications',

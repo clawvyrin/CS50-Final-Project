@@ -5,5 +5,5 @@ class OnLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const Center(child: CircularProgressIndicator.adaptive());
+      Scaffold(body: Center(child: CircularProgressIndicator.adaptive()));
 }

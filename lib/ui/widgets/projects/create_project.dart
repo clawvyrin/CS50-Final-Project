@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/providers/project_list_providers.dart';
 import 'package:task_companion/services/supabase_services.dart';
 
-class CreateProject extends StatelessWidget {
+class CreateProject extends ConsumerWidget {
   final TextEditingController nameController;
   final TextEditingController descController;
 
@@ -13,7 +15,7 @@ class CreateProject extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => AlertDialog(
+  Widget build(BuildContext context, WidgetRef ref) => AlertDialog(
     title: Text("New Project"),
     content: Column(
       mainAxisSize: MainAxisSize.min,
@@ -38,7 +40,7 @@ class CreateProject extends StatelessWidget {
           );
           if (context.mounted) {
             context.pop(context);
-            // Optionnel : ref.invalidate(projectsProvider) pour rafraîchir la liste
+            ref.invalidate(projectListProvider);
           }
         },
         child: const Text("Créer"),

@@ -27,6 +27,8 @@ abstract class Project with _$Project {
     @Default([]) List<ProjectMember>? members,
     @Default([]) List<Resource>? resources,
     @Default([]) List<Activity>? activities,
+    @JsonKey(name: 'start_date') DateTime? startDate,
+    @JsonKey(name: 'end_date') DateTime? endDate,
   }) = _Project;
 
   factory Project.fromJson(Map<String, dynamic> json) =>

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/providers/project_providers.dart';
-import 'package:task_companion/ui/widgets/on_error.dart';
-import 'package:task_companion/ui/widgets/on_loading.dart';
+import 'package:task_companion/ui/widgets/helpers/on_error.dart';
+import 'package:task_companion/ui/widgets/helpers/on_loading.dart';
 import 'package:task_companion/ui/widgets/projects/dynamic_floating_action_button.dart';
 import 'package:task_companion/ui/widgets/projects/gantt/gantt_chart.dart';
 import 'package:task_companion/ui/widgets/projects/milestone_row.dart';

@@ -9,8 +9,8 @@ import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/ui/widgets/home/home_drawer_menu.dart';
 import 'package:task_companion/ui/widgets/home/project_list.dart';
 import 'package:task_companion/ui/widgets/projects/create_project.dart';
-import 'package:task_companion/ui/widgets/on_error.dart';
-import 'package:task_companion/ui/widgets/on_loading.dart';
+import 'package:task_companion/ui/widgets/helpers/on_error.dart';
+import 'package:task_companion/ui/widgets/helpers/on_loading.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});

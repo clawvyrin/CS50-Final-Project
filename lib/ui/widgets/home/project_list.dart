@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/providers/profiles_provider.dart';
 import 'package:task_companion/providers/project_providers.dart';
 import 'package:task_companion/services/auth_services.dart';
-import 'package:task_companion/ui/widgets/on_error.dart';
-import 'package:task_companion/ui/widgets/on_loading.dart';
+import 'package:task_companion/ui/widgets/helpers/on_error.dart';
+import 'package:task_companion/ui/widgets/helpers/on_loading.dart';
 import 'package:task_companion/ui/widgets/projects/cards/project_card.dart';
 
 class ProjectList extends ConsumerWidget {

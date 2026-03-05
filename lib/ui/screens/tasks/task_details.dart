@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/models/task_model.dart';
 import 'package:task_companion/providers/tasks_provider.dart';
-import 'package:task_companion/ui/widgets/on_error.dart';
-import 'package:task_companion/ui/widgets/on_loading.dart';
+import 'package:task_companion/ui/widgets/helpers/on_error.dart';
+import 'package:task_companion/ui/widgets/helpers/on_loading.dart';
 
 class TaskDetails extends ConsumerWidget {
   final String taskId;

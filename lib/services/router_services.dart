@@ -11,12 +11,11 @@ import 'package:task_companion/ui/screens/authentication/sign_up.dart';
 import 'package:task_companion/ui/screens/notifications/notifications.dart';
 import 'package:task_companion/ui/screens/projects/project_dashboard.dart';
 import 'package:task_companion/ui/screens/search/search.dart';
-import 'package:task_companion/ui/screens/search/search_results.dart';
 import 'package:task_companion/ui/screens/settings/settings.dart';
 import 'package:task_companion/ui/screens/tasks/task_conversation_page.dart';
 import 'package:task_companion/ui/screens/tasks/task_details.dart';
-import 'package:task_companion/ui/widgets/on_error.dart';
-import 'package:task_companion/ui/widgets/on_loading.dart';
+import 'package:task_companion/ui/widgets/helpers/on_error.dart';
+import 'package:task_companion/ui/widgets/helpers/on_loading.dart';
 
 late GoTrueClient authClient;
 
@@ -120,13 +119,6 @@ class AppRouter {
             path: 'search',
             name: 'search',
             builder: (context, state) => Search(),
-            routes: [
-              GoRoute(
-                path: 'search_results',
-                name: 'search_results',
-                builder: (context, state) => SearchResults(),
-              ),
-            ],
           ),
           GoRoute(
             path: 'settings',

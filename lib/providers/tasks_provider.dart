@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/models/task_model.dart';
+import 'package:task_companion/providers/chat_provider.dart';
 import 'package:task_companion/providers/project_providers.dart';
+import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/services/task_services.dart';
 
 final taskDetailsProvider = FutureProvider.family<Task?, Map<String, String>>((
@@ -50,5 +52,20 @@ class TaskActionsNotifier extends AsyncNotifier<void> {
 
       ref.invalidate(projectDetailsProvider(projectId));
     });
+  }
+
+  Future<void> verifyReport({
+    required String reportId,
+    required String taskId,
+  }) async {
+    final supabase = ref.read(supabaseProvider).requireValue;
+
+    await supabase.rpc(
+      'certify_daily_report',
+      params: {'p_report_id': reportId},
+    );
+
+    ref.invalidate(taskDetailsProvider);
+    ref.invalidate(taskChatMessagesProvider);
   }
 }

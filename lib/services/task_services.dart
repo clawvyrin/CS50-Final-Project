@@ -68,6 +68,24 @@ class TaskService {
       return null;
     }
   }
+
+  Future verifyTaskReport({required String reportId}) async {
+    try {
+      appLogger.i("Attempt to get task details");
+
+      await supabase.rpc(
+        'certify_daily_report',
+        params: {'p_report_id': reportId},
+      );
+    } catch (e, st) {
+      appLogger.e(
+        "Error verifying task report",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+    }
+  }
 }
 
 final taskServiceProvider = Provider((ref) => TaskService());

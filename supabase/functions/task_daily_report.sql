@@ -85,3 +85,36 @@ begin
 
 end;
 $$;
+
+create or replace function public.certify_daily_report(p_report_id uuid)
+returns void
+language plpgsql security definer
+as $$
+declare
+    v_project_id uuid;
+begin
+    -- 1. Récupérer le projet lié au rapport
+    select t.project_id into v_project_id
+    from public.daily_task_reports r
+    join public.tasks t on r.task_id = t.id
+    where r.id = p_report_id;
+
+    -- 2. Vérifier si l'utilisateur actuel est Admin ou Owner du projet
+    -- (Supposant que tu as une table project_members avec un champ role)
+    if not exists (
+        select 1 from public.project_members
+        where project_id = v_project_id 
+        and user_id = auth.uid() 
+        and role in ('admin', 'owner')
+    ) then
+        raise exception 'Seul un administrateur peut certifier ce rapport.';
+    end if;
+
+    -- 3. Mettre à jour le rapport
+    update public.daily_task_reports
+    set 
+        is_signed = true,
+        signed_at = now(),
+        signed_by = auth.uid() -- On stocke qui a signé pour l'audit
+    where id = p_report_id;
+end; $$;

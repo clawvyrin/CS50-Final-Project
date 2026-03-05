@@ -14,6 +14,8 @@ abstract class Task with _$Task {
   const factory Task({
     required String id,
     @JsonKey(name: 'project_id') required String projectId,
+    @JsonKey(name: 'project_name') required String projectName,
+    @JsonKey(name: 'conversation_id') required String conversationId,
     required String title,
     String? description,
     required TaskStatus status,

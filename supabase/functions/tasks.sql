@@ -92,7 +92,7 @@ begin
 end;
 $$;
 
-create or replace function public.get_task_details_v1(p_task_id uuid)
+create or replace function public.get_task_details(p_task_id uuid)
 returns jsonb
 language plpgsql security definer
 as $$

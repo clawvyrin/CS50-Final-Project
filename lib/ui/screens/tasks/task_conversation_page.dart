@@ -41,7 +41,9 @@ class TaskConversationPage extends ConsumerWidget {
               ),
               body: Column(
                 children: [
-                  Expanded(child: TaskMessageList()),
+                  Expanded(
+                    child: TaskMessageList(conversationId: task.conversationId),
+                  ),
                   _buildMessageInput(),
                 ],
               ),

@@ -3,10 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/services/profile_services.dart';
 
-final profileServiceProvider = Provider<ProfileServices>((ref) {
-  return ProfileServices();
-});
-
 final profileProvider = AsyncNotifierProvider.autoDispose
     .family<ProfilesNotifier, Profile, String>(ProfilesNotifier.new);
 

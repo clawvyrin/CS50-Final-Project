@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/providers/project_providers.dart';
+import 'package:task_companion/ui/widgets/projects/dynamic_floating_action_button.dart';
 import 'package:task_companion/ui/widgets/projects/gantt_chart.dart';
 import 'package:task_companion/ui/widgets/projects/milestone_row.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/activities_tab.dart';
@@ -9,13 +10,27 @@ import 'package:task_companion/ui/widgets/projects/tabs/resources_tab.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/tasks_tabs.dart';
 import 'package:task_companion/ui/widgets/projects/tabs/timeline_tab.dart';
 
-class ProjectDashboard extends ConsumerWidget {
+class ProjectDashboard extends ConsumerStatefulWidget {
   final String projectId;
   const ProjectDashboard({super.key, required this.projectId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final projectAsync = ref.watch(projectDetailsProvider(projectId));
+  ConsumerState<ProjectDashboard> createState() => _ProjectDashboardState();
+}
+
+class _ProjectDashboardState extends ConsumerState<ProjectDashboard> {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+    _tabController.addListener(() => setState(() {}));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final projectAsync = ref.watch(projectDetailsProvider(widget.projectId));
 
     return projectAsync.when(
       loading: () =>
@@ -85,6 +100,10 @@ class ProjectDashboard extends ConsumerWidget {
                       ),
                     ),
                   ],
+                ),
+                floatingActionButton: ProjectFloatingActionButton(
+                  project: project,
+                  tabController: _tabController,
                 ),
               ),
             ),

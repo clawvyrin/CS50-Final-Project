@@ -11,6 +11,8 @@ abstract class ProjectMember with _$ProjectMember {
     required String id,
     @JsonKey(name: 'project_id') required String projectId,
     @JsonKey(name: 'user_id') required String userId,
+    @JsonKey(name: 'display_name') required String displayName,
+    @JsonKey(name: 'avatar_url') required String avatarUrl,
     required ProjectRole role,
     required AssignmentStatus status,
     @JsonKey(name: 'created_at') required DateTime createdAt,

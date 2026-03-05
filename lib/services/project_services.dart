@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/logger.dart';
 import 'package:task_companion/models/project_model.dart';
@@ -115,3 +116,7 @@ class ProjectServices {
     }
   }
 }
+
+final projectServiceProvider = Provider<ProjectServices>((ref) {
+  return ProjectServices();
+});

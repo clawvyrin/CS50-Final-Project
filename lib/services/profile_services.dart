@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/logger.dart';
 import 'package:task_companion/models/profile_model.dart';
@@ -79,3 +80,7 @@ class ProfileServices {
     }
   }
 }
+
+final profileServiceProvider = Provider<ProfileServices>((ref) {
+  return ProfileServices();
+});

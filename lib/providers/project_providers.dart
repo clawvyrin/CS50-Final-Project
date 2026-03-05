@@ -2,10 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/models/project_model.dart';
 import 'package:task_companion/services/project_services.dart';
 
-final projectServiceProvider = Provider<ProjectServices>((ref) {
-  return ProjectServices();
-});
-
 final projectsListProvider =
     AsyncNotifierProvider<ProjectsListNotifier, List<Project>>(() {
       return ProjectsListNotifier();

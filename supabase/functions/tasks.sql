@@ -55,7 +55,7 @@ begin
     )
     returning id into new_task_id;
 
-    insert into public.task_dependencies (project_id, task_id, depends_on_task_id)
+    insert into public.add_task_dependencies (project_id, task_id, depends_on_task_id)
     select p_project_id, new_task_id, dep_id
     from unnest(p_dependencies) dep_id;
 
@@ -91,3 +91,49 @@ begin
 
 end;
 $$;
+
+create or replace function public.get_task_details_v1(p_task_id uuid)
+returns jsonb
+language plpgsql security definer
+as $$
+declare
+    result jsonb;
+begin
+    select jsonb_build_object(
+        'id', t.id,
+        'project_id', t.project_id,
+        'title', t.title,
+        'description', t.description,
+        'status', t.status,
+        'assigned_to', t.assigned_to,
+        'assignee_display_name', (select display_name from public.profiles where id = t.assigned_to),
+        'assignee_avatar_url', (select avatar_url from public.profiles where id = t.assigned_to),
+        'due_date', t.due_date,
+        'shift_start_time', t.shift_start_time,
+        'shift_end_time', t.shift_end_time,
+        -- Agrégation des activités de la tâche
+        'activities', (
+            select coalesce(jsonb_agg(a), '[]'::jsonb) 
+            from public.activities a where a.task_id = t.id
+        ),
+        -- Agrégation des ressources allouées à cette tâche
+        'affected_resources', (
+            select coalesce(jsonb_agg(r), '[]'::jsonb) 
+            from public.resources r where r.task_id = t.id
+        ),
+        -- Agrégation des rapports journaliers
+        'reports', (
+            select coalesce(jsonb_agg(rep), '[]'::jsonb) 
+            from public.daily_task_reports rep where rep.task_id = t.id
+        ),
+        -- Agrégation des dépendances
+        'dependencies', (
+            select coalesce(jsonb_agg(d), '[]'::jsonb) 
+            from public.task_dependencies d where d.task_id = t.id
+        )
+    ) into result
+    from public.tasks t
+    where t.id = p_task_id;
+
+    return result;
+end; $$;

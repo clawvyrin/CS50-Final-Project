@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_companion/models/project_model.dart';
-import 'package:task_companion/providers/project_providers.dart';
+import 'package:task_companion/models/task_model.dart';
 import 'package:task_companion/providers/tasks_provider.dart';
 
 class ProjectFloatingActionButton extends ConsumerWidget {
@@ -47,6 +47,7 @@ class ProjectFloatingActionButton extends ConsumerWidget {
               ),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: "Assigned to"),
+                // ignore: deprecated_member_use
                 value: selectedAssigneeId,
                 items: project.members
                     ?.map(
@@ -137,22 +138,125 @@ class ProjectFloatingActionButton extends ConsumerWidget {
     );
   }
 
-  void _showAddActivityDialog(
+  void showDailyReportForm(
     String projectId,
     BuildContext context,
+    Task task,
     WidgetRef ref,
   ) {
-    final descController = TextEditingController();
+    final summaryController = TextEditingController();
+    List<Map<String, dynamic>> tempActivities = [];
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text("Rapport : ${task.title}"),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: summaryController,
+                    decoration: const InputDecoration(
+                      labelText: "Résumé global de la journée",
+                      hintText: "Ex: Progression conforme au planning...",
+                    ),
+                    maxLines: 2,
+                  ),
+                  const Divider(height: 30),
+                  const Text(
+                    "Actions effectuées (Activités)",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+
+                  // Liste des activités ajoutées
+                  ...tempActivities.asMap().entries.map((entry) {
+                    int idx = entry.key;
+                    var act = entry.value;
+                    return Card(
+                      color: Colors.blue.shade50,
+                      child: ListTile(
+                        title: Text(act['description']),
+                        subtitle: Text(
+                          "Ressources: ${act['resources'].length}",
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => setDialogState(
+                            () => tempActivities.removeAt(idx),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 10),
+
+                  TextButton.icon(
+                    onPressed: () =>
+                        _openAddActivitySubDialog(setDialogState, (newAct) {
+                          tempActivities.add(newAct);
+                        }, context),
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: const Text("Ajouter une action précise"),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Annuler"),
+            ),
+            ElevatedButton(
+              onPressed: tempActivities.isEmpty
+                  ? null // On n'envoie pas un rapport vide
+                  : () async {
+                      // await ref
+                      //     .read(taskActionsProvider.notifier)
+                      //     .submitDailyReport(
+                      //       taskId: task.id,
+                      //       summary: summaryController.text,
+                      //       activities: tempActivities,
+                      //     );
+                      // if (mounted) Navigator.pop(context);
+                    },
+              child: const Text("Envoyer le Rapport"),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openAddActivitySubDialog(
+    Function setParentState,
+    Function(Map<String, dynamic>) onAdded,
+    BuildContext context,
+  ) {
+    final actDescController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Rapport d'activité"),
-        content: TextField(
-          controller: descController,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: "Qu'avez-vous fait aujourd'hui ?",
-          ),
+        title: const Text("Détail de l'action"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: actDescController,
+              decoration: const InputDecoration(
+                labelText: "Description (ex: Coulage béton)",
+              ),
+            ),
+            // Ici tu pourrais ajouter un sélecteur de ressources
+          ],
         ),
         actions: [
           TextButton(
@@ -160,12 +264,17 @@ class ProjectFloatingActionButton extends ConsumerWidget {
             child: const Text("Annuler"),
           ),
           ElevatedButton(
-            onPressed: () async {
-              // Logique d'insertion activité...
-              ref.invalidate(projectDetailsProvider(projectId));
+            onPressed: () {
+              onAdded({
+                'description': actDescController.text,
+                'resources': [], // À remplir selon ton sélecteur
+              });
+              setParentState(
+                () {},
+              ); // Force le rafraîchissement du dialogue parent
               Navigator.pop(context);
             },
-            child: const Text("Publier"),
+            child: const Text("Ajouter"),
           ),
         ],
       ),
@@ -237,11 +346,6 @@ class ProjectFloatingActionButton extends ConsumerWidget {
       case 0: // Tasks
         return FloatingActionButton(
           onPressed: () => _showAddTaskDialog(project.id, context, ref),
-          child: const Icon(Icons.add_task),
-        );
-      case 1: // Activities
-        return FloatingActionButton(
-          onPressed: () => _showAddActivityDialog(project.id, context, ref),
           child: const Icon(Icons.add_task),
         );
       case 2: // Resources

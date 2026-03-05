@@ -1,7 +1,18 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_companion/models/task_model.dart';
 import 'package:task_companion/providers/project_providers.dart';
 import 'package:task_companion/services/task_services.dart';
+
+final taskDetailsProvider = FutureProvider.family<Task?, Map<String, String>>((
+  ref,
+  data,
+) async {
+  return await TaskService().getTaskDetails(
+    projectId: data["projectId"]!,
+    taskId: data["taskId"]!,
+  );
+});
 
 final taskActionsProvider = AsyncNotifierProvider<TaskActionsNotifier, void>(
   () {

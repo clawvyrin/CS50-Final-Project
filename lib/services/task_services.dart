@@ -42,6 +42,32 @@ class TaskService {
       return null;
     }
   }
+
+  Future<Task?> getTaskDetails({
+    required String projectId,
+    required String taskId,
+  }) async {
+    try {
+      appLogger.i("Attempt to get task details");
+
+      final response = await supabase
+          .rpc(
+            'get_task_details',
+            params: {'p_task_id': taskId, 'p_id': projectId},
+          )
+          .maybeSingle();
+
+      return Task.fromJson(response!);
+    } catch (e, st) {
+      appLogger.e(
+        "Error getting task details",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return null;
+    }
+  }
 }
 
 final taskServiceProvider = Provider((ref) => TaskService());

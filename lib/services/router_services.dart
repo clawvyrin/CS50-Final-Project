@@ -13,6 +13,8 @@ import 'package:task_companion/ui/screens/projects/project_dashboard.dart';
 import 'package:task_companion/ui/screens/search/search.dart';
 import 'package:task_companion/ui/screens/search/search_results.dart';
 import 'package:task_companion/ui/screens/settings/settings.dart';
+import 'package:task_companion/ui/screens/tasks/task_conversation_page.dart';
+import 'package:task_companion/ui/screens/tasks/task_details.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
 
@@ -74,12 +76,40 @@ class AppRouter {
         builder: (context, state) => const Home(),
         routes: [
           GoRoute(
-            path: 'project_dashboard/:id',
-            name: 'project_dashboard',
+            path: 'project/:projectId',
+            name: 'project',
             builder: (context, state) {
               final projectId = state.pathParameters['projectId'];
               return ProjectDashboard(projectId: projectId!);
             },
+            routes: [
+              GoRoute(
+                path: 'tasks/:taskId',
+                name: 'tasks',
+                builder: (context, state) {
+                  final taskId = state.pathParameters['taskId'];
+                  final projectId = state.pathParameters['projectId'];
+                  return TaskConversationPage(
+                    taskId: taskId!,
+                    projectId: projectId!,
+                  );
+                },
+                routes: [
+                  GoRoute(
+                    path: 'task_details/',
+                    name: 'task_details',
+                    builder: (context, state) {
+                      final taskId = state.pathParameters['taskId'];
+                      final projectId = state.pathParameters['projectId'];
+                      return TaskDetails(
+                        taskId: taskId!,
+                        projectId: projectId!,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           GoRoute(
             path: 'notifications',

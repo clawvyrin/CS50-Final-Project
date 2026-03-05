@@ -142,33 +142,95 @@ $$;
 
 create or replace function public.get_project_details(p_id uuid)
 returns jsonb
-language plpgsql security definer set search_path = public
-stable as $$
+language plpgsql
+security definer
+stable
+set search_path = public
+as $$
 declare
     result jsonb;
 begin
+
     select jsonb_build_object(
         'id', p.id,
         'name', p.name,
         'description', p.description,
         'owner_id', p.owner_id,
-        'owner_display_name', u.display_name, -- Jointure avec ta table profiles/users
-        'owner_avatar_url', u.avatar_url,
+        'owner_display_name', owner.display_name,
+        'owner_avatar_url', owner.avatar_url,
         'status', p.status,
-        'background_picture_url', p.background_picture_url,
-        'created_at', p.created_at,
         'start_date', p.start_date,
         'end_date', p.end_date,
-        'tasks', (select coalesce(jsonb_agg(t), '[]') from public.tasks t where t.project_id = p.id),
-        'milestones', (select coalesce(jsonb_agg(m), '[]') from public.milestones m where m.project_id = p.id),
-        'timeline', (select coalesce(jsonb_agg(te), '[]') from public.timeline_events te where te.project_id = p.id),
-        'members', (select coalesce(jsonb_agg(pm), '[]') from public.project_members pm where pm.project_id = p.id),
-        'resources', (select coalesce(jsonb_agg(r), '[]') from public.resources r where r.project_id = p.id),
-        'activities', (select coalesce(jsonb_agg(a), '[]') from public.activities a where a.project_id = p.id)
-    ) into result
-    from public.projects p
-    left join public.profiles u on p.owner_id = u.id -- Ajuste le nom de ta table user si besoin
-    where p.id = p_id and p.owner_id = auth.uid();
 
-    return result;
-end; $$;
+        'tasks', (
+            select coalesce(jsonb_agg(task_data), '[]')
+            from (
+                select 
+                    t.*,
+                    assignee.display_name as assignee_display_name,
+                    assignee.avatar_url as assignee_avatar_url,
+
+                    (
+                        select coalesce(jsonb_agg(act), '[]')
+                        from public.activities act
+                        where act.task_id = t.id
+                    ) as activities,
+
+                    (
+                        select coalesce(jsonb_agg(rep), '[]')
+                        from public.daily_task_reports rep
+                        where rep.task_id = t.id
+                    ) as reports,
+
+                    (
+                        select coalesce(jsonb_agg(dep), '[]')
+                        from public.task_dependencies dep
+                        where dep.task_id = t.id
+                    ) as dependencies
+
+                from public.tasks t
+                left join public.profiles assignee
+                    on assignee.id = t.assigned_to
+                where t.project_id = p.id
+            ) task_data
+        ),
+
+        'milestones', (
+            select coalesce(jsonb_agg(m), '[]')
+            from public.milestones m
+            where m.project_id = p.id
+        ),
+
+        'resources', (
+            select coalesce(jsonb_agg(r), '[]')
+            from public.resources r
+            where r.project_id = p.id
+        ),
+
+        'members', (
+            select coalesce(jsonb_agg(mem), '[]')
+            from public.project_members mem
+            where mem.project_id = p.id
+        )
+
+    )
+    into result
+    from public.projects p
+    left join public.profiles owner
+        on owner.id = p.owner_id
+    where p.id = p_id
+    and (
+        p.owner_id = auth.uid()
+        or exists (
+            select 1
+            from public.project_members pm
+            where pm.project_id = p.id
+            and pm.user_id = auth.uid()
+        )
+    )
+    limit 1;
+
+    return coalesce(result, '{}'::jsonb);
+
+end;
+$$;

@@ -17,7 +17,9 @@ abstract class Task with _$Task {
     required String title,
     String? description,
     required TaskStatus status,
-    @JsonKey(name: 'assigned_to') required String? assignedTo,
+    @JsonKey(name: 'assigned_to') required String? assigneeId,
+    @JsonKey(name: 'assignee_display_name') required String? assigneeDisplayName,
+    @JsonKey(name: 'assignee_avatar_url') required String? assigneeAvatarUrl,
     @JsonKey(name: 'work_days') @Default([]) List<Weekday>? workDays,
     @JsonKey(name: 'shift_start_time')
     @Default("08:00:00")

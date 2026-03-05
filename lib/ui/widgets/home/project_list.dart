@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/providers/profiles_provider.dart';
-import 'package:task_companion/providers/project_service_providers.dart';
+import 'package:task_companion/providers/project_providers.dart';
 import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
@@ -12,7 +12,7 @@ class ProjectList extends ConsumerWidget {
 
   Widget list(WidgetRef ref) {
     return ref
-        .watch(projectServiceProvider)
+        .watch(projectsListProvider)
         .when(
           data: (projects) {
             return ListView.builder(

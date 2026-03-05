@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:task_companion/providers/project_service_providers.dart';
-import 'package:task_companion/services/project_services.dart';
+import 'package:task_companion/providers/project_providers.dart';
 
 class CreateProject extends ConsumerStatefulWidget {
   const CreateProject({super.key});
@@ -19,6 +18,32 @@ class _CreateProjectState extends ConsumerState<CreateProject> {
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
 
+  Future<void> _submit() async {
+    if (_formKey.currentState!.validate()) {
+      try {
+        final newProject = await ref
+            .read(projectServiceProvider)
+            .createProject(
+              name: _nameController.text,
+              description: _descController.text,
+              start: _startDate,
+              end: _endDate,
+            );
+
+        if (newProject != null) {
+          await ref.read(projectsListProvider.notifier).addProject(newProject);
+        }
+        if (mounted) context.pop(context);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) => AlertDialog(
     title: Text("New Project"),
@@ -29,7 +54,7 @@ class _CreateProjectState extends ConsumerState<CreateProject> {
         children: [
           TextField(
             controller: _nameController,
-            decoration: const InputDecoration(labelText: "Nom"),
+            decoration: const InputDecoration(labelText: "Name"),
           ),
           TextField(
             controller: _descController,
@@ -69,19 +94,8 @@ class _CreateProjectState extends ConsumerState<CreateProject> {
     actions: [
       TextButton(onPressed: () => context.pop(), child: const Text("Cancel")),
       ElevatedButton(
-        onPressed: () async {
-          await ProjectServices().createProject(
-            name: _nameController.text.trim(),
-            description: _descController.text.trim(),
-            start: DateTime.now(),
-            end: DateTime.now().add(const Duration(days: 7)),
-          );
-          if (context.mounted) {
-            context.pop(context);
-            ref.invalidate(projectServiceProvider);
-          }
-        },
-        child: const Text("Créer"),
+        onPressed: () async => await _submit(),
+        child: const Text("Create"),
       ),
     ],
   );

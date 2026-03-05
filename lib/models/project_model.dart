@@ -18,6 +18,8 @@ abstract class Project with _$Project {
     required String name,
     String? description,
     @JsonKey(name: 'owner_id') required String ownerId,
+    @JsonKey(name: 'owner_display_name') required String ownerDisplayName,
+    @JsonKey(name: 'owner_avatar_url') required String ownerAvatarUrl,
     required ProjectStatus status,
     @JsonKey(name: 'background_picture_url') String? backgroundPictureUrl,
     @JsonKey(name: 'created_at') DateTime? createdAt,

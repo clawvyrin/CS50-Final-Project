@@ -4,7 +4,7 @@ import 'package:task_companion/models/project_model.dart';
 
 class ProjectServices {
   final supabase = Supabase.instance.client;
-  
+
   Future<List<Project>> getUserProjects({
     DateTime? anchor,
     int limit = 10,
@@ -53,6 +53,27 @@ class ProjectServices {
     } catch (e, st) {
       appLogger.e(
         "Error creating project",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return null;
+    }
+  }
+
+  Future<Project?> getFullProjectDetails(String id) async {
+    try {
+      appLogger.i("Attempt to get project details");
+
+      final response = await supabase.rpc(
+        'get_project_details',
+        params: {'p_id': id},
+      );
+
+      return Project.fromJson(response);
+    } catch (e, st) {
+      appLogger.e(
+        "Error getting project details",
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),

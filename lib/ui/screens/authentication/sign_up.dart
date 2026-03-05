@@ -4,7 +4,8 @@ import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_companion/core/functions.dart';
 import 'package:task_companion/core/logger.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/auth_services.dart';
+import 'package:task_companion/services/profile_services.dart';
 
 class Register extends StatefulWidget {
   const Register({super.key});
@@ -77,7 +78,7 @@ class _RegisterState extends State<Register> {
 
         // On vérifie seulement si le format de l'email est déjà valide pour ne pas spammer la DB
         if (value.contains('@') && value.contains('.')) {
-          bool exists = await SupabaseServices().checkEmailExists(value);
+          bool exists = await ProfileServices().checkEmailExists(value);
           if (exists != isEmailTaken) {
             setState(() => isEmailTaken = exists);
             _formKey.currentState?.validate(); // Relance la validation visuelle
@@ -138,7 +139,7 @@ class _RegisterState extends State<Register> {
   }
 
   Future<void> _handleSignUp() async {
-    bool alreadyTaken = await SupabaseServices().checkEmailExists(
+    bool alreadyTaken = await ProfileServices().checkEmailExists(
       emailController.text,
     );
     if (alreadyTaken) {
@@ -152,7 +153,7 @@ class _RegisterState extends State<Register> {
     setState(() => isLoading = true);
 
     try {
-      bool success = await SupabaseServices().signUp({
+      bool success = await AuthServices().signUp({
         "email": emailController.text.trim(),
         "password": passwordController.text.trim(),
         "firstName": firstNameController.text.trim(),

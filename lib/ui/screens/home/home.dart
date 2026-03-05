@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_companion/models/profile_model.dart';
 import 'package:task_companion/providers/profiles_provider.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/ui/widgets/home/home_drawer_menu.dart';
 import 'package:task_companion/ui/widgets/home/project_list.dart';
 import 'package:task_companion/ui/widgets/projects/create_project.dart';
@@ -46,22 +46,13 @@ class _HomeState extends ConsumerState<Home> {
   }
 
   void _createNewProject(BuildContext context) {
-    final nameController = TextEditingController();
-    final descController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => CreateProject(
-        nameController: nameController,
-        descController: descController,
-      ),
-    );
+    showDialog(context: context, builder: (context) => CreateProject());
   }
 
   @override
   Widget build(BuildContext context) {
     return ref
-        .watch(profileProvider(SupabaseServices.id!))
+        .watch(profileProvider(AuthServices.id!))
         .when(
           data: (Profile user) {
             return Scaffold(

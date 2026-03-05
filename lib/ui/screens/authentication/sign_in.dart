@@ -3,7 +3,7 @@ import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_companion/core/functions.dart';
 import 'package:task_companion/core/logger.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/auth_services.dart';
 
 class SignIn extends StatefulWidget {
   const SignIn({super.key});
@@ -47,7 +47,7 @@ class _SignInState extends State<SignIn> {
     setState(() => isLoading = true);
 
     try {
-      bool success = await SupabaseServices().signIn(
+      bool success = await AuthServices().signIn(
         emailController.text.trim(),
         passwordController.text.trim(),
       );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/auth_services.dart';
 
 class DeleteAccount extends StatelessWidget {
   final TextEditingController confirmController;
@@ -26,8 +26,8 @@ class DeleteAccount extends StatelessWidget {
         onPressed: () async {
           if (confirmController.text.trim().toLowerCase() != "delete") return;
 
-          await SupabaseServices().deleteAccount();
-          await SupabaseServices().signOut();
+          await AuthServices().deleteAccount();
+          await AuthServices().signOut();
           if (context.mounted) {
             context.pop(context);
           }

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/models/profile_model.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/profile_services.dart';
 
 final profileProvider = AsyncNotifierProvider.autoDispose
     .family<ProfilesNotifier, Profile, String>(ProfilesNotifier.new);
@@ -11,13 +11,12 @@ class ProfilesNotifier extends AsyncNotifier<Profile> {
   String id;
 
   @override
-  FutureOr<Profile> build() async =>
-      await SupabaseServices().getProfileData(id);
+  FutureOr<Profile> build() async => await ProfileServices().getProfileData(id);
 
   Future<void> refresh() async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(
-      () async => await SupabaseServices().getProfileData(id),
+      () async => await ProfileServices().getProfileData(id),
     );
   }
 }

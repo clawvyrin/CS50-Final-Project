@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/ui/screens/authentication/auth_method.dart';
 import 'package:task_companion/ui/screens/authentication/sign_in.dart';
 import 'package:task_companion/ui/screens/home/home.dart';

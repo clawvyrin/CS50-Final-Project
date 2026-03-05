@@ -69,21 +69,35 @@ $$;
 
 create or replace function public.create_project(
     p_name text, 
-    p_desc text
+    p_desc text, 
+    p_start timestamptz, 
+    p_end timestamptz
 )
-returns public.projects 
-language plpgsql 
+returns public.projects
+language plpgsql
 security definer
 set search_path = public
 as $$
 declare
-    new_project public.projects;
+    new_proj public.projects;
 begin
-    insert into public.projects (name, description, owner_id)
-    values (p_name, p_desc, auth.uid())
-    returning * into new_project;
+    insert into public.projects (
+        name,
+        description,
+        start_date,
+        end_date,
+        owner_id
+    )
+    values (
+        p_name,
+        p_desc,
+        p_start,
+        p_end,
+        auth.uid()
+    )
+    returning * into new_proj;
 
-    return new_project;
+    return new_proj;
 end;
 $$;
 

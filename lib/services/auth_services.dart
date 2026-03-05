@@ -4,8 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/logger.dart';
-import 'package:task_companion/models/profile_model.dart';
-import 'package:task_companion/models/project_model.dart';
 import 'package:task_companion/services/router_services.dart';
 
 final supabaseProvider =
@@ -13,12 +11,12 @@ final supabaseProvider =
       SupabaseNotifier.new,
     );
 
-class SupabaseServices {
+class AuthServices {
   final supabase = Supabase.instance.client;
 
   static String? id = "";
 
-  void setUserId(String? id) => SupabaseServices.id = id;
+  void setUserId(String? id) => AuthServices.id = id;
 
   ///////////////////////////////////////////////////////
   ///                                                ///
@@ -120,172 +118,6 @@ class SupabaseServices {
 
   ///////////////////////////////////////////////////////
   ///                                                ///
-  ///                    PROFILES                    ///
-  ///                                                ///
-  //////////////////////////////////////////////////////
-
-  Future getProfileData(String id) async {
-    try {
-      final result = await supabase
-          .from('profiles')
-          .select()
-          .eq("id", id)
-          .maybeSingle();
-
-      if (result != null) return Profile.fromJson(result);
-
-      return null;
-    } catch (e, st) {
-      appLogger.e(
-        "Email Validity Error",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-      return null;
-    }
-  }
-
-  Future<bool> updateProfile({
-    required String userId,
-    String? firstName,
-    String? lastName,
-    String? bio,
-    String? avatarUrl,
-  }) async {
-    try {
-      await supabase
-          .from('profiles')
-          .update({
-            'first_name': ?firstName,
-            'last_name': ?lastName,
-            'biography': ?bio,
-            'avatar_url': ?avatarUrl,
-            'display_name':
-                '$firstName $lastName', // On reconstruit le nom complet
-          })
-          .eq('id', userId);
-
-      return true;
-    } catch (e, st) {
-      appLogger.e(
-        "Profile Update Error",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> checkEmailExists(String email) async {
-    try {
-      final result = await supabase
-          .from('profiles')
-          .select('id')
-          .eq("email", email)
-          .maybeSingle();
-
-      return result != null;
-    } catch (e, st) {
-      appLogger.e(
-        "Email Validity Error",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-      return false;
-    }
-  }
-
-  ///////////////////////////////////////////////////////
-  ///                                                ///
-  ///                    PROJECTS                    ///
-  ///                                                ///
-  //////////////////////////////////////////////////////
-
-  Future<List<Project>> getUserProjects({
-    DateTime? anchor,
-    int limit = 10,
-  }) async {
-    try {
-      appLogger.i("Attempt to fetch user projects");
-
-      final timestamp =
-          anchor?.toIso8601String() ?? DateTime.now().toIso8601String();
-
-      final List<dynamic> response = await supabase.rpc(
-        'get_user_projects',
-        params: {'anchor': timestamp, 'n_projects': limit},
-      );
-      return response.map((json) => Project.fromJson(json)).toList();
-    } catch (e, st) {
-      appLogger.e(
-        "Error getting user projects",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-      return [];
-    }
-  }
-
-  Future<Project?> createProject(String name, String description) async {
-    try {
-      appLogger.i("Attempt to create project");
-
-      final response = await supabase.rpc(
-        'create_project',
-        params: {'p_name': name, 'p_desc': description},
-      );
-
-      return Project.fromJson(response);
-    } catch (e, st) {
-      appLogger.e(
-        "Error creating project",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-      return null;
-    }
-  }
-
-  Future deleteProject(String id) async {
-    try {
-      appLogger.i("Attempt to delete project");
-
-      await supabase.rpc('create_project', params: {'p_id': id});
-    } catch (e, st) {
-      appLogger.e(
-        "Error deleting project",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-    }
-  }
-
-  Future editProject(Project updatedProject) async {
-    try {
-      appLogger.i("Attempt to edit project");
-
-      await supabase.rpc(
-        'create_project',
-        params: {'updated_project': updatedProject},
-      );
-    } catch (e, st) {
-      appLogger.e(
-        "Error editing project",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
-    }
-  }
-
-  ///////////////////////////////////////////////////////
-  ///                                                ///
   ///                    TASKS                       ///
   ///                                                ///
   //////////////////////////////////////////////////////
@@ -358,7 +190,7 @@ class SupabaseNotifier extends AsyncNotifier<SupabaseClient> {
       anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
     );
 
-    SupabaseServices().setUserId(Supabase.instance.client.auth.currentUser?.id);
+    AuthServices().setUserId(Supabase.instance.client.auth.currentUser?.id);
 
     return Supabase.instance.client;
   }

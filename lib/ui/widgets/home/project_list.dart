@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/providers/profiles_provider.dart';
-import 'package:task_companion/providers/project_list_providers.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/providers/project_service_providers.dart';
+import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/ui/widgets/on_error.dart';
 import 'package:task_companion/ui/widgets/on_loading.dart';
 import 'package:task_companion/ui/widgets/projects/project_card.dart';
@@ -12,7 +12,7 @@ class ProjectList extends ConsumerWidget {
 
   Widget list(WidgetRef ref) {
     return ref
-        .watch(projectListProvider)
+        .watch(projectServiceProvider)
         .when(
           data: (projects) {
             return ListView.builder(
@@ -35,7 +35,7 @@ class ProjectList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => RefreshIndicator(
     onRefresh: () async {
-      ref.invalidate(profileProvider(SupabaseServices.id!));
+      ref.invalidate(profileProvider(AuthServices.id!));
     },
     child: list(ref),
   );

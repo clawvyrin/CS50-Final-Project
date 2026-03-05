@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:task_companion/services/supabase_services.dart';
+import 'package:task_companion/services/auth_services.dart';
 import 'package:task_companion/ui/widgets/settings/delete_account.dart';
 
 class Settings extends StatefulWidget {
@@ -19,12 +19,12 @@ class _SettingsState extends State<Settings> {
           ListTile(
             leading: Icon(Icons.sunny),
             title: Text("Edit theme"),
-            onTap: () async => await SupabaseServices().signOut(),
+            onTap: () async => await AuthServices().signOut(),
           ),
           ListTile(
             leading: Icon(Icons.logout),
             title: Text("Log out"),
-            onTap: () async => await SupabaseServices().signOut(),
+            onTap: () async => await AuthServices().signOut(),
           ),
           ListTile(
             leading: Icon(Icons.delete, color: Colors.red),

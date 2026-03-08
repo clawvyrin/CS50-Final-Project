@@ -4,6 +4,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/log/logger.dart';
 import 'package:task_companion/core/router/router_services.dart';
 
+final authServicesProvider = Provider<AuthServices>((ref) {
+  return AuthServices();
+});
+
 class AuthServices {
   final supabase = Supabase.instance.client;
 

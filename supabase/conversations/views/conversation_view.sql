@@ -11,7 +11,14 @@ SELECT
     lm.last_message,
 
     -- participants
-    COALESCE(pt.participants, '[]'::jsonb) AS participants
+    COALESCE(pt.participants, '[]'::jsonb) AS participants,
+
+    (SELECT m.created_at 
+        FROM messages m 
+        WHERE m.conversation_id = c.id 
+        ORDER BY m.created_at DESC 
+        LIMIT 1
+    ) as last_message_at
 
 FROM conversations c
 

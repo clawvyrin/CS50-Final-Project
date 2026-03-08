@@ -8,12 +8,15 @@ import 'package:task_companion/features/conversations/models/message_model.dart'
 import 'package:task_companion/features/conversations/services/chat_services.dart';
 
 final inboxProvider = StreamProvider<List<Conversation>>((ref) {
-  final supabase = ref.watch(supabaseProvider);
+  final supabaseClient = ref.watch(supabaseProvider);
+  final userId = supabaseClient.auth.currentUser?.id;
 
-  return supabase
+  if (userId == null) return Stream.value([]);
+
+  return supabaseClient
       .from('conversation_view')
       .stream(primaryKey: ['id'])
-      .order('updated_at', ascending: false)
+      .order('last_message_at', ascending: false)
       .map((data) => data.map((json) => Conversation.fromJson(json)).toList());
 });
 
@@ -118,7 +121,13 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
   }
 
   Future<Message?> getMessageView(String id) async {
+    if (id.trim().isEmpty) {
+      appLogger.w("getMessageView called with empty id.");
+      return null;
+    }
+
     try {
+      // 2. Utilise await explicitement avant le .from
       final response = await ref
           .read(supabaseProvider)
           .from('message_view')
@@ -126,15 +135,8 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
           .eq('id', id)
           .maybeSingle();
 
-      if (response == null) return null;
-      return Message.fromJson(response);
-    } catch (e, st) {
-      appLogger.e(
-        "Erreur getMessageView",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now(),
-      );
+      return response != null ? Message.fromJson(response) : null;
+    } catch (e) {
       return null;
     }
   }

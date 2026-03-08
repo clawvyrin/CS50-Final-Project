@@ -18,7 +18,7 @@ SELECT
 
     te.action_type,
     te.content,
-    te.meta_data,
+    te.metadata,
     te.created_at
 
 FROM timeline_events te

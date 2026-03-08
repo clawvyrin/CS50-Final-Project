@@ -29,10 +29,10 @@ SELECT
     dtr.is_signed,
     dtr.reported_at
 
-FROM daily_task_reports dtr
+FROM daily_tasks_reports dtr
 JOIN tasks t ON t.id = dtr.task_id
 JOIN projects p ON p.id = t.project_id
-JOIN profiles u ON u.id = dtr.submitted_by_id;
+JOIN profiles u ON u.id = dtr.user_id;
 
 CREATE INDEX daily_task_reports_task_idx
 ON daily_task_reports(task_id);

@@ -8,7 +8,13 @@ SELECT
         'description', p.description
     ) AS project,
 
-    t.conversation_id,
+    (
+        SELECT c.id
+        FROM conversations c
+        WHERE c.task_id = t.id
+        AND c.project_id = t.project_id
+        LIMIT 1
+    ) AS conversation_id,
     t.title,
     t.description,
     t.status,
@@ -51,7 +57,7 @@ SELECT
         (
             SELECT jsonb_agg(dtrv)
             FROM daily_task_report_view dtrv
-            WHERE dtrv.task->>'id' = t.id
+            WHERE (dtrv.task->>'id')::uuid = t.id
         ),
         '[]'::jsonb
     ) AS reports,
@@ -61,24 +67,23 @@ SELECT
         (
             SELECT jsonb_agg(td)
             FROM task_dependency_view td
-            WHERE td.task->>'id' = t.id
+            WHERE (td.task->>'id')::uuid = t.id
         ),
         '[]'::jsonb
     ) AS dependencies,
 
-    t.due_date,
-    t.pending_reports_count
+    t.due_date
 
 FROM tasks t
 JOIN projects p ON p.id = t.project_id
-JOIN profiles a ON a.id = t.assignee_id;
+JOIN profiles a ON a.id = t.assigned_to;
 
 
 CREATE INDEX tasks_project_idx
 ON tasks(project_id);
 
 CREATE INDEX tasks_assignee_idx
-ON tasks(assignee_id);
+ON tasks(assigned_to);
 
 CREATE INDEX tasks_conversation_idx
 ON tasks(conversation_id);

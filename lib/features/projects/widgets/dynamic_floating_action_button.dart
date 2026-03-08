@@ -47,6 +47,7 @@ class ProjectFloatingActionButton extends ConsumerWidget {
               ),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: "Assigned to"),
+                // ignore: deprecated_member_use
                 value: selectedAssigneeId,
                 items: project.members
                     ?.map(

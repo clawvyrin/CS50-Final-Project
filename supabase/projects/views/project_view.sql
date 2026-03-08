@@ -20,7 +20,7 @@ SELECT
         (
             SELECT jsonb_agg(tv)
             FROM task_view tv
-            WHERE tv.project->>'id' = p.id
+            WHERE (tv.project->>'id')::uuid = p.id
         ),
         '[]'::jsonb
     ) AS tasks,
@@ -30,7 +30,7 @@ SELECT
         (
             SELECT jsonb_agg(mv)
             FROM milestone_view mv
-            WHERE mv.project->>'id' = p.id
+            WHERE (mv.project->>'id')::uuid = p.id
         ),
         '[]'::jsonb
     ) AS milestones,
@@ -40,7 +40,7 @@ SELECT
         (
             SELECT jsonb_agg(tv)
             FROM timeline_event_view tv
-            WHERE tv.project->>'id' = p.id
+            WHERE (tv.project->>'id')::uuid = p.id
         ),
         '[]'::jsonb
     ) AS timeline,
@@ -50,7 +50,7 @@ SELECT
         (
             SELECT jsonb_agg(mv)
             FROM project_member_view mv
-            WHERE mv.project->>'id' = p.id
+            WHERE mv.project_id = p.id
         ),
         '[]'::jsonb
     ) AS members,
@@ -60,20 +60,10 @@ SELECT
         (
             SELECT jsonb_agg(rv)
             FROM resource_view rv
-            WHERE rv.project->>'id' = p.id
+            WHERE (rv.project->>'id')::uuid = p.id
         ),
         '[]'::jsonb
     ) AS resources,
-
-    -- Activities
-    COALESCE(
-        (
-            SELECT jsonb_agg(av)
-            FROM activity_view av
-            WHERE av.task->'project'->>'id' = p.id
-        ),
-        '[]'::jsonb
-    ) AS activities,
 
     p.start_date,
     p.end_date

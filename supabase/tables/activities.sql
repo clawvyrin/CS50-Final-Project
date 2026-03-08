@@ -11,7 +11,7 @@ create table public.activities (
 create table public.activity_resources (
     activity_id uuid references public.activities(id) on delete cascade,
     resource_id uuid references public.resources(id) on delete cascade,
-    amount_impacted numeric, -- ex: -50 pour un budget, +2 pour des unités
+    amount_impacted numeric,
     primary key (activity_id, resource_id)
 );
 

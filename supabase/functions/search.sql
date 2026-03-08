@@ -1,3 +1,4 @@
+------------ USER_SEARCH
 create or replace function public.search_my_collaborators(p_query text)
 returns table (
     id uuid,
@@ -25,8 +26,20 @@ begin
     and p.display_name ilike '%' || p_query || '%';
 end; $$ language plpgsql;
 
+
+------------ PROJECT_SEARCH
 create or replace function public.search_my_projects(p_query text)
 returns setof public.projects as $$
+begin
+    return query
+    select pr.* from public.projects pr
+    where pr.id in (select project_id from public.project_members where user_id = auth.uid())
+    and pr.name ilike '%' || p_query || '%';
+end; $$ language plpgsql;
+
+------------ TASK_SEARCH
+create or replace function public.search_my_tasks(p_query text)
+returns setof public.tasks as $$
 begin
     return query
     select pr.* from public.projects pr

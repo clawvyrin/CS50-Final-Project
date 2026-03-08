@@ -1,16 +1,28 @@
-import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_companion/providers/theme_provider.dart';
-import 'package:task_companion/services/router_services.dart';
+import 'package:task_companion/core/start/bootstrap.dart';
+import 'package:task_companion/features/settings/providers/settings_provider.dart';
+import 'package:task_companion/features/settings/providers/theme_provider.dart';
+import 'package:task_companion/features/authentication/services/auth_services.dart';
+import 'package:task_companion/core/router/router_services.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  await FastCachedImageConfig.init();
-  runApp(const ProviderScope(child: MyApp()));
+  final bootstrap = await AppBootstrap.initialize();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith(
+          () => SettingsNotifier(bootstrap.settings),
+        ),
+        supabaseProvider.overrideWith(
+          () => SupabaseNotifier(bootstrap.supabaseClient),
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {

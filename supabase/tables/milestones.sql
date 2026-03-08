@@ -1,6 +1,5 @@
 create type public.milestone_status as enum ('onTrack', 'achieved', 'postponed');
 
--- TABLE MILESTONES
 create table public.milestones (
     id uuid primary key default gen_random_uuid(),
     project_id uuid references public.projects(id) on delete cascade not null,

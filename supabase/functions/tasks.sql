@@ -1,3 +1,4 @@
+------------ CREATE_TASK
 create or replace function public.create_task(
     p_project_id uuid,
     p_title text,
@@ -92,6 +93,7 @@ begin
 end;
 $$;
 
+------------ GET_TASK_DETAILS
 create or replace function public.get_task_details(p_task_id uuid)
 returns jsonb
 language plpgsql security definer

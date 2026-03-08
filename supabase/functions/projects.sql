@@ -1,3 +1,4 @@
+------------ IS_PROJECT_MEMBER
 create or replace function public.is_project_member(p_id uuid, u_id uuid)
 returns boolean
 security definer stable
@@ -24,7 +25,7 @@ $$;
 
 alter function public.is_project_member(uuid, uuid) stable;
 
-
+------------ IS_PROJECT_OWNER
 create or replace function public.is_project_owner(p_id uuid, u_id uuid)
 returns boolean
 security definer stable
@@ -41,7 +42,7 @@ $$;
 
 alter function public.is_project_owner(uuid, uuid) stable;
 
-
+------------ GET_USER_PROJECTS
 create or replace function public.get_user_projects(
     anchor timestamptz, 
     n_projects int
@@ -66,7 +67,7 @@ end;
 $$;
 
 
-
+------------ CREATE_PROJECT
 create or replace function public.create_project(
     p_name text, 
     p_desc text, 
@@ -101,6 +102,7 @@ begin
 end;
 $$;
 
+------------ EDIT_PROJECT
 create or replace function public.edit_project(updated_project public.projects)
 returns public.projects 
 language plpgsql 
@@ -126,7 +128,7 @@ begin
 end;
 $$;
 
-
+------------ DELETE_PROJECT
 create or replace function public.delete_project(p_id uuid)
 returns void 
 language plpgsql
@@ -140,6 +142,7 @@ begin
 end;
 $$;
 
+------------ GET_PROJECT_DETAILS
 create or replace function public.get_project_details(p_id uuid)
 returns jsonb
 language plpgsql

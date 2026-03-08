@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/authentication/screens/auth_method.dart';
 import 'package:task_companion/features/authentication/screens/sign_in.dart';
+import 'package:task_companion/features/conversations/screens/show_conversations.dart';
 import 'package:task_companion/features/home/screens/home.dart';
 import 'package:task_companion/features/authentication/screens/sign_up.dart';
 import 'package:task_companion/features/notifications/screens/notifications.dart';
@@ -90,6 +91,11 @@ class AppRouter {
             path: 'notifications',
             name: 'notifications',
             builder: (context, state) => NotificationsPage(),
+          ),
+          GoRoute(
+            path: 'conversations',
+            name: 'conversations',
+            builder: (context, state) => ShowConversations(),
           ),
           GoRoute(
             path: 'search',

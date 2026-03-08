@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/features/home/widgets/conversations_icon.dart';
+import 'package:task_companion/features/home/widgets/notifications_icon.dart';
 import 'package:task_companion/features/profiles/models/profile_model.dart';
 import 'package:task_companion/features/profiles/providers/profiles_provider.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
@@ -30,23 +32,8 @@ class _HomeState extends ConsumerState<Home> {
       ),
       title: Text("Projects"),
       actions: [
-        Stack(
-          children: [
-            PlatformIconButton(
-              onPressed: () => context.goNamed('notifications'),
-              icon: Icon(Icons.notifications),
-            ),
-            Positioned(
-              right: 8,
-              top: 8,
-              child: CircleAvatar(
-                radius: 8,
-                backgroundColor: Colors.red,
-                child: Text('9', style: const TextStyle(fontSize: 10)),
-              ),
-            ),
-          ],
-        ),
+        ConversationsIcon(),
+        NotificationsIcon(),
         PlatformIconButton(
           onPressed: () => context.goNamed('search'),
           icon: Icon(Icons.search),

@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:task_companion/core/log/logger.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/conversations/models/conversation_model.dart';
 import 'package:task_companion/features/conversations/models/message_model.dart';
@@ -37,7 +39,7 @@ final unreadConversationsCountProvider = Provider<int>((ref) {
   );
 });
 
-final taskChatMessagesProvider =
+final messagesProvider =
     AsyncNotifierProvider.family<TaskChatNotifier, List<Message>, String>((
       conversationId,
     ) {
@@ -50,11 +52,21 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
 
   static const int _pageSize = 20;
   bool _hasMore = true;
+  RealtimeChannel? _subscription;
 
   @override
   FutureOr<List<Message>> build() async {
+    ref.onDispose(() {
+      _subscription?.unsubscribe();
+      appLogger.i("Unsubscribed from chat: $conversationId");
+    });
+
+    final initialMessages = await _fetchFromService(offset: 0);
     _hasMore = true;
-    return await _fetchFromService(offset: 0);
+
+    _listenToNewMessages();
+
+    return initialMessages;
   }
 
   Future<List<Message>> _fetchFromService({required int offset}) async {
@@ -67,6 +79,54 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
         );
   }
 
+  void _listenToNewMessages() {
+    _subscription?.unsubscribe();
+    _subscription = ref
+        .read(supabaseProvider)
+        .channel('public:messages')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'messages',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: "conversation_id",
+            value: conversationId,
+          ),
+          callback: (payload) async {
+            final newMessage = await getMessageView(payload.newRecord["id"]);
+            final current = state.value ?? [];
+            if (!current.any((m) => m.id == newMessage!.id) &&
+                newMessage != null) {
+              state = AsyncValue.data([newMessage, ...current]);
+            }
+          },
+        )
+        .subscribe();
+  }
+
+  Future<Message?> getMessageView(String id) async {
+    try {
+      final response = await ref
+          .read(supabaseProvider)
+          .from('message_view')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
+
+      if (response == null) return null;
+      return Message.fromJson(response);
+    } catch (e, st) {
+      appLogger.e(
+        "Erreur getMessageView",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now(),
+      );
+      return null;
+    }
+  }
+
   Future<void> loadMore() async {
     if (state.isLoading || !_hasMore) return;
 
@@ -76,7 +136,11 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
     state = await AsyncValue.guard(() async {
       final moreMessages = await ref
           .read(chatServicesProvider)
-          .getConversationMessages(offset: currentMessages.length);
+          .getConversationMessages(
+            offset: currentMessages.length,
+            conversationId: conversationId,
+            limit: _pageSize,
+          );
       return [...currentMessages, ...moreMessages];
     });
   }

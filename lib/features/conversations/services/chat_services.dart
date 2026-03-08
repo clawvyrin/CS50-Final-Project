@@ -7,32 +7,23 @@ class ChatServices {
   final supabase = Supabase.instance.client;
 
   Future<List<Message>> getConversationMessages({
+    required String conversationId,
     int offset = 0,
-    String conversationId = "",
     int limit = 20,
-    bool hasMore = true,
   }) async {
     try {
-      appLogger.i(" Gettig task onversation messages");
+      appLogger.i("Fetching conversation messages for $conversationId");
 
-      final response = await supabase.rpc(
-        'get_task_conversation_messages',
-        params: {'c_id': conversationId, 'offset': offset, 'limit': limit},
-      );
+      final response = await supabase
+          .from('message_view')
+          .select()
+          .eq('conversation_id', conversationId)
+          .order('created_at', ascending: false)
+          .range(offset, offset + limit - 1);
 
-      final List<Message> newMessages = (response as List)
-          .map((m) => Message.fromJson(m))
-          .toList();
-
-      if (newMessages.length < limit) hasMore = false;
-      return newMessages;
+      return (response as List).map((m) => Message.fromJson(m)).toList();
     } catch (e, st) {
-      appLogger.e(
-        "Email fetching task conversation messages Error",
-        error: e,
-        stackTrace: st,
-        time: DateTime.now().toUtc(),
-      );
+      appLogger.e("Error fetching messages", error: e, stackTrace: st);
       return [];
     }
   }

@@ -3,6 +3,7 @@ create table public.messages (
     conversation_id uuid references public.conversations(id) on delete cascade not null,
     sender_id uuid references public.profiles(id) on delete cascade not null,
     content text not null,
+    type text,
     meta_data jsonb default '{}'::jsonb,
     created_at timestamptz default now()
 );

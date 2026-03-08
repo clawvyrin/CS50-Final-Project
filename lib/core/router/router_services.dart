@@ -18,9 +18,9 @@ import 'package:task_companion/features/tasks/screens/task_details.dart';
 late GoTrueClient authClient;
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final supabaseClient = ref.watch(supabaseProvider);
+  final supabaseClient = ref.watch(supabaseProvider).auth;
 
-  authClient = supabaseClient.auth;
+  authClient = supabaseClient;
   return AppRouter.router;
 });
 
@@ -61,32 +61,28 @@ class AppRouter {
               final projectId = state.pathParameters['projectId'];
               return ProjectDashboard(projectId: projectId!);
             },
+            routes: [],
+          ),
+          GoRoute(
+            path: 'project/:projectId/task/:taskId',
+            name: 'tasks',
+            builder: (context, state) {
+              final taskId = state.pathParameters['taskId'];
+              final projectId = state.pathParameters['projectId'];
+              return TaskConversationPage(
+                taskId: taskId!,
+                projectId: projectId!,
+              );
+            },
             routes: [
               GoRoute(
-                path: 'tasks/:taskId',
-                name: 'tasks',
+                path: 'task_details',
+                name: 'task_details',
                 builder: (context, state) {
                   final taskId = state.pathParameters['taskId'];
                   final projectId = state.pathParameters['projectId'];
-                  return TaskConversationPage(
-                    taskId: taskId!,
-                    projectId: projectId!,
-                  );
+                  return TaskDetails(taskId: taskId!, projectId: projectId!);
                 },
-                routes: [
-                  GoRoute(
-                    path: 'task_details/',
-                    name: 'task_details',
-                    builder: (context, state) {
-                      final taskId = state.pathParameters['taskId'];
-                      final projectId = state.pathParameters['projectId'];
-                      return TaskDetails(
-                        taskId: taskId!,
-                        projectId: projectId!,
-                      );
-                    },
-                  ),
-                ],
               ),
             ],
           ),

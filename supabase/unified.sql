@@ -303,8 +303,8 @@ alter function public.is_conversation_participant(uuid, uuid) stable;
 
 ---------------------------------- PROJECTS ----------------------------------
 
------------- IS_PROJECT_MEMBER
 
+------------ IS_PROJECT_MEMBER
 create or replace function public.is_project_member(p_id uuid, u_id uuid)
 returns boolean
 security definer stable

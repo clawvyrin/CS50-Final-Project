@@ -15,39 +15,57 @@ class ChangeTheme extends ConsumerWidget {
     if (context.mounted) context.pop();
   }
 
-  StatelessWidget _isCurrentThemeCheck(
-    ThemeMode themeOption,
-    String currentTheme,
+  Widget _buildThemeOption(
+    BuildContext context,
+    WidgetRef ref,
+    String label,
+    IconData icon,
+    String value,
+    String currentValue,
   ) {
-    return themeOption.name.toLowerCase() == currentTheme
-        ? Icon(Icons.check)
-        : Container();
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: () => _applyTheme(context, ref, value),
+      trailing: RadioGroup<String>(
+        groupValue: currentValue,
+        onChanged: (_) => _applyTheme(context, ref, value),
+        child: Radio<String>(value: value),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.read(settingsProvider);
+    final String currentTheme = settings.theme;
 
-    String theme = settings.theme;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        ListTile(
-          leading: Icon(Icons.light_mode),
-          title: Text("Light"),
-          onTap: () async => _applyTheme(context, ref, "light"),
-          trailing: _isCurrentThemeCheck(ThemeMode.light, theme),
+        _buildThemeOption(
+          context,
+          ref,
+          "Light",
+          Icons.light_mode,
+          "light",
+          currentTheme,
         ),
-        ListTile(
-          leading: Icon(Icons.dark_mode),
-          title: Text("Dark"),
-          onTap: () async => _applyTheme(context, ref, "dark"),
-          trailing: _isCurrentThemeCheck(ThemeMode.dark, theme),
+        _buildThemeOption(
+          context,
+          ref,
+          "Dark",
+          Icons.dark_mode,
+          "dark",
+          currentTheme,
         ),
-        ListTile(
-          leading: Icon(Icons.devices),
-          title: Text("System"),
-          onTap: () async => _applyTheme(context, ref, "system"),
-          trailing: _isCurrentThemeCheck(ThemeMode.system, theme),
+        _buildThemeOption(
+          context,
+          ref,
+          "System",
+          Icons.devices,
+          "system",
+          currentTheme,
         ),
       ],
     );

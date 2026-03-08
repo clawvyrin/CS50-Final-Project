@@ -52,6 +52,7 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
 
   static const int _pageSize = 20;
   bool _hasMore = true;
+  bool get hasMore => _hasMore;
   RealtimeChannel? _subscription;
 
   @override

@@ -66,6 +66,6 @@ class TaskActionsNotifier extends AsyncNotifier<void> {
     );
 
     ref.invalidate(taskDetailsProvider);
-    ref.invalidate(taskChatMessagesProvider);
+    ref.invalidate(messagesProvider);
   }
 }

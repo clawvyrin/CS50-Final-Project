@@ -35,7 +35,7 @@ class _TaskMessageListState extends ConsumerState<TaskMessageList> {
           callback: (payload) {
             final newMessage = Message.fromJson(payload.newRecord);
             ref
-                .read(taskChatMessagesProvider(widget.conversationId).notifier)
+                .read(messagesProvider(widget.conversationId).notifier)
                 .addLiveMessage(newMessage);
           },
         );
@@ -44,9 +44,7 @@ class _TaskMessageListState extends ConsumerState<TaskMessageList> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      ref
-          .read(taskChatMessagesProvider(widget.conversationId).notifier)
-          .loadMore();
+      ref.read(messagesProvider(widget.conversationId).notifier).loadMore();
     }
   }
 
@@ -61,9 +59,7 @@ class _TaskMessageListState extends ConsumerState<TaskMessageList> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState = ref.watch(
-      taskChatMessagesProvider(widget.conversationId),
-    );
+    final chatState = ref.watch(messagesProvider(widget.conversationId));
 
     return chatState.when(
       data: (messages) => ListView.builder(
@@ -85,9 +81,7 @@ class _TaskMessageListState extends ConsumerState<TaskMessageList> {
 
   Widget _buildMessageTile(Message msg) {
     if (msg.metaData!["type"] == 'report_notification') {
-      return ReportNotificationBubble(
-        report: msg.metaData!["report"], 
-      );
+      return ReportNotificationBubble(report: msg.metaData!["report"]);
     }
 
     return ChatBubble(message: msg.content, isMe: msg.isMe);

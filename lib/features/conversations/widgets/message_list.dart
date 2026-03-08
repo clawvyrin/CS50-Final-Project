@@ -16,7 +16,6 @@ class MessageList extends ConsumerStatefulWidget {
 
 class _MessageListState extends ConsumerState<MessageList> {
   final ScrollController _scrollController = ScrollController();
-  bool _atBottom = false;
 
   @override
   void initState() {
@@ -46,17 +45,23 @@ class _MessageListState extends ConsumerState<MessageList> {
     final chatState = ref.watch(messagesProvider(widget.conversationId));
 
     return chatState.when(
-      data: (messages) => ListView.builder(
-        controller: _scrollController,
-        reverse: true,
-        itemCount: messages.length + (_atBottom ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == messages.length && _atBottom) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          return _buildMessageTile(messages[index]);
-        },
-      ),
+      data: (messages) {
+        final hasMore = ref
+            .read(messagesProvider(widget.conversationId).notifier)
+            .hasMore;
+
+        return ListView.builder(
+          controller: _scrollController,
+          reverse: true,
+          itemCount: messages.length + (hasMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == messages.length && hasMore) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return _buildMessageTile(messages[index]);
+          },
+        );
+      },
       loading: () => OnLoading(),
       error: (e, _) => OnError(e: e),
     );

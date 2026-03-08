@@ -16,7 +16,7 @@ abstract class Conversation with _$Conversation {
     @JsonKey(name: 'created_at') DateTime? createdAt,
     @JsonKey(name: 'updated_at') DateTime? updatedAt,
     @JsonKey(name: 'last_message') LinkedMessageData? lastMessage,
-    @Default([]) List<ConversationParticipant>? participants,
+    @Default([]) List<ConversationParticipant> participants,
   }) = _Conversation;
 
   factory Conversation.fromJson(Map<String, dynamic> json) =>

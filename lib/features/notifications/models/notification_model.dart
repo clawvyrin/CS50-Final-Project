@@ -10,7 +10,7 @@ abstract class NotificationModel with _$NotificationModel {
   const factory NotificationModel({
     required String id,
     required String type,
-    required LinkedProfileData notitifer,
+    required LinkedProfileData notifier,
     @JsonKey(name: 'notified_id') required String notifiedId,
     required NotificationStatus status,
     @JsonKey(name: 'meta_data') Map<String, dynamic>? metaData,

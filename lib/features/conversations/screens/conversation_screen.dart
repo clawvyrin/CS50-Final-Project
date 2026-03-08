@@ -63,7 +63,7 @@ class ConversationScreen extends ConsumerWidget {
                       showDialog(
                         context: context,
                         builder: (context) => ParticipantAlertDialog(
-                          participant: conversation.participants!
+                          participant: conversation.participants
                               .where((p) => p.user.id != AuthServices.id)
                               .first,
                         ),

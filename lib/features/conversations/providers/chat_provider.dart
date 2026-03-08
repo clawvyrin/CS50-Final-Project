@@ -80,6 +80,17 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
         );
   }
 
+  Future<bool> sendMessage(String content) async {
+    if (content.isEmpty) return false;
+
+    return await ref.read(chatServicesProvider).sendMessage({
+      "conversation_id": conversationId,
+      "sender_id": AuthServices.id!,
+      "content": content,
+      "type": "text",
+    });
+  }
+
   void _listenToNewMessages() {
     _subscription?.unsubscribe();
     _subscription = ref

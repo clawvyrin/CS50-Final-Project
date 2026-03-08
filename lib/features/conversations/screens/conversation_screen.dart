@@ -13,22 +13,39 @@ class ConversationScreen extends ConsumerWidget {
 
   const ConversationScreen({super.key, required this.conversationId});
 
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput(WidgetRef ref, BuildContext context) {
+    TextEditingController messageController = TextEditingController();
+
     return Container(
       padding: const EdgeInsets.all(8),
       color: Colors.white,
       child: Row(
         children: [
           IconButton(icon: const Icon(Icons.add), onPressed: () {}),
-          const Expanded(
+          Expanded(
             child: TextField(
+              controller: messageController,
               decoration: InputDecoration(hintText: "Message..."),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.send, color: Colors.blue),
-            onPressed: () {
-              //add send message logic here
+            onPressed: () async {
+              final text = messageController.text.trim();
+              if (text.isEmpty) return;
+
+              messageController.clear();
+
+              bool success = await ref
+                  .read(messagesProvider(conversationId).notifier)
+                  .sendMessage(text);
+
+              if (!success && context.mounted) {
+                messageController.text = text;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Error sending message")),
+                );
+              }
             },
           ),
         ],
@@ -75,7 +92,7 @@ class ConversationScreen extends ConsumerWidget {
               body: Column(
                 children: [
                   Expanded(child: MessageList(conversationId: conversationId)),
-                  _buildMessageInput(),
+                  _buildMessageInput(ref, context),
                 ],
               ),
             );

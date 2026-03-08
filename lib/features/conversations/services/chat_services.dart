@@ -27,6 +27,21 @@ class ChatServices {
       return [];
     }
   }
+
+  Future<bool> sendMessage(Map<String, dynamic> message) async {
+    try {
+      final response = await supabase
+          .from('messages')
+          .insert(message)
+          .select()
+          .maybeSingle();
+
+      return response != null;
+    } catch (e, st) {
+      appLogger.e("Error sending message", error: e, stackTrace: st);
+      return false;
+    }
+  }
 }
 
 final chatServicesProvider = Provider<ChatServices>((ref) {

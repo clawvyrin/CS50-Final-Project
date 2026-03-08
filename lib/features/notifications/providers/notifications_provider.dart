@@ -7,9 +7,7 @@ import 'package:task_companion/features/notifications/models/notification_model.
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 
 final notificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
-  final supabaseClient = ref.watch(
-    supabaseProvider,
-  );
+  final supabaseClient = ref.watch(supabaseProvider);
   final userId = supabaseClient.auth.currentUser?.id;
 
   if (userId == null) return Stream.value([]);
@@ -17,7 +15,6 @@ final notificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
   return supabaseClient
       .from('notifications')
       .stream(primaryKey: ['id'])
-      .eq('user_id', userId)
       .order('created_at', ascending: false)
       .map((data) {
         return data.map((json) => NotificationModel.fromJson(json)).toList();
@@ -63,7 +60,7 @@ class NotificationActionsNotifier extends AsyncNotifier<void> {
       await supabaseClient
           .from('notifications')
           .update({'is_read': true})
-          .eq('user_id', userId);
+          .eq('notified_id', userId);
     });
   }
 }

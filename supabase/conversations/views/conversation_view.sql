@@ -3,39 +3,23 @@ SELECT
     c.id,
     c.title,
     c.created_at,
-    c.updated_at,
 
-    -- TASK (nullable)
-    CASE
-        WHEN t.id IS NULL THEN NULL
-        ELSE jsonb_build_object(
-            'id', t.id,
-            'title', t.title,
-            'description', t.description,
-            'project', jsonb_build_object(
-                'id', pr.id,
-                'name', pr.name,
-                'description', pr.description
-            )
-        )
-    END AS task,
+    -- task from task_view
+    tv AS task,
 
-    -- LAST MESSAGE
+    -- last message
     lm.last_message,
 
-    -- PARTICIPANTS
+    -- participants
     COALESCE(pt.participants, '[]'::jsonb) AS participants
 
 FROM conversations c
 
-LEFT JOIN tasks t
-    ON t.id = c.task_id
-
-LEFT JOIN projects pr
-    ON pr.id = t.project_id
+LEFT JOIN task_view tv
+    ON tv.id = c.task_id
 
 
--- last message with computed seen_at
+-- LAST MESSAGE
 LEFT JOIN LATERAL (
     SELECT jsonb_build_object(
         'content', m.content,
@@ -58,23 +42,12 @@ LEFT JOIN LATERAL (
 ) lm ON TRUE
 
 
--- participants list
+-- PARTICIPANTS using the new view
 LEFT JOIN LATERAL (
-    SELECT jsonb_agg(
-        jsonb_build_object(
-            'conversation_id', p.conversation_id,
-            'user', jsonb_build_object(
-                'id', prf.id,
-                'display_name', prf.display_name,
-                'avatar_url', prf.avatar_url
-            )
-        )
-    ) AS participants
-    FROM conversation_participants p
-    JOIN profiles prf
-        ON prf.id = p.user_id
-    WHERE p.conversation_id = c.id
-) pt ON TRUE;
+    SELECT jsonb_agg(cp)
+    FROM conversation_participant_view cp
+    WHERE cp.conversation_id = c.id
+) pt(participants) ON TRUE;
 
 
 CREATE INDEX conversation_participants_conversation_idx

@@ -10,6 +10,7 @@ abstract class ConversationParticipant with _$ConversationParticipant {
   const factory ConversationParticipant({
     @JsonKey(name: 'conversation_id') required String conversationId,
     required LinkedProfileData user,
+    @JsonKey(name: 'last_seen_at') DateTime? lastSeenAt,
   }) = _ConversationParticipant;
 
   factory ConversationParticipant.fromJson(Map<String, dynamic> json) =>

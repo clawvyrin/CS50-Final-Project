@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/log/logger.dart';
+import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/projects/models/project_model.dart';
 
 class ProjectServices {
@@ -16,10 +17,14 @@ class ProjectServices {
       final timestamp =
           anchor?.toIso8601String() ?? DateTime.now().toIso8601String();
 
-      final List<dynamic> response = await supabase.rpc(
-        'get_user_projects',
-        params: {'anchor': timestamp, 'n_projects': limit},
-      );
+      final response = await supabase
+          .from('project_view')
+          .select()
+          .eq('owner->>id', AuthServices.id!)
+          .gt('created_at', timestamp)
+          .order('created_at', ascending: false)
+          .limit(limit);
+
       return response.map((json) => Project.fromJson(json)).toList();
     } catch (e, st) {
       appLogger.e(

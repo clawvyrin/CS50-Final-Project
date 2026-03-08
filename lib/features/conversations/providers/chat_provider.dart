@@ -7,42 +7,32 @@ import 'package:task_companion/features/conversations/services/chat_services.dar
 
 final inboxProvider = StreamProvider<List<Conversation>>((ref) {
   final supabase = ref.watch(supabaseProvider);
-  final userId = supabase.auth.currentUser?.id;
-
-  if (userId == null) return Stream.value([]);
 
   return supabase
-      .from('conversation_participants')
-      .stream(primaryKey: ['conversation_id', 'user_id'])
-      .eq('user_id', userId)
-      .order('last_message_at', ascending: false)
-      .asyncMap((participants) async {
-        if (participants.isEmpty) return [];
-
-        final ids = participants
-            .map((p) => p['conversation_id'] as String)
-            .toList();
-
-        final response = await supabase
-            .from('conversation_details_view')
-            .select()
-            .filter('id', 'in', ids);
-
-        final mapped = (response as List)
-            .map((json) => Conversation.fromJson(json))
-            .toList();
-
-        mapped.sort((a, b) => b.updatedAt!.compareTo(a.updatedAt!));
-
-        return mapped;
-      });
+      .from('conversation_view')
+      .stream(primaryKey: ['id'])
+      .order('updated_at', ascending: false)
+      .map((data) => data.map((json) => Conversation.fromJson(json)).toList());
 });
 
 final unreadConversationsCountProvider = Provider<int>((ref) {
   final inboxAsync = ref.watch(inboxProvider);
+
   return inboxAsync.maybeWhen(
-    data: (list) =>
-        list.where((conv) => conv.lastMessage!.seenAt == null).length,
+    data: (conversations) => conversations.where((conv) {
+      if (conv.lastMessage == null) return false;
+
+      final myParticipant = conv.participants
+          .where((p) => p.user.id == AuthServices.id)
+          .firstOrNull;
+
+      if (myParticipant == null) return false;
+
+      final lastSeen = myParticipant.lastSeenAt;
+      if (lastSeen == null) return true;
+
+      return lastSeen.isBefore(conv.lastMessage!.sentAt);
+    }).length,
     orElse: () => 0,
   );
 });

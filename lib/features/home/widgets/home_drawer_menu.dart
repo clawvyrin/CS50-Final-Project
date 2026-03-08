@@ -1,8 +1,8 @@
-import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_companion/features/profiles/models/profile_model.dart';
+import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 
 class HomeDrawerMenu extends StatelessWidget {
   final Profile user;
@@ -16,7 +16,10 @@ class HomeDrawerMenu extends StatelessWidget {
         UserAccountsDrawerHeader(
           accountName: Text(user.displayName),
           accountEmail: Text(user.email),
-          currentAccountPicture: FastCachedImage(url: user.avatarUrl),
+          currentAccountPicture: ProfilePicture(
+            avatarUrl: user.avatarUrl,
+            radius: 40,
+          ),
           decoration: BoxDecoration(color: Colors.deepPurple),
         ),
         Align(

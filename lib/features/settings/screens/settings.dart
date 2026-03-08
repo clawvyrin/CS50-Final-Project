@@ -49,7 +49,10 @@ class Settings extends ConsumerWidget {
             title: Text("Log out"),
             onTap: () async {
               await ref.read(authServicesProvider).signOut();
-              if (context.mounted) context.pop();
+              if (context.mounted) {
+                context.pop();
+                context.goNamed("auth");
+              }
             },
           ),
           ListTile(

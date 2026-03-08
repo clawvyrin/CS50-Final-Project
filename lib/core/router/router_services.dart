@@ -109,9 +109,9 @@ class AppRouter {
       final bool isLoggedIn = session != null;
 
       if (isLoggedIn && state.fullPath!.contains("/auth")) {
-        context.goNamed('home');
+        return '/home';
       } else if (!isLoggedIn && state.fullPath!.contains("/home")) {
-        context.goNamed('auth');
+        return '/auth';
       }
 
       return null;

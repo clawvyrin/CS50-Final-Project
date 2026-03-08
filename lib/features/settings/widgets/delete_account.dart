@@ -31,6 +31,7 @@ class DeleteAccount extends ConsumerWidget {
           await ref.read(authServicesProvider).signOut();
           if (context.mounted) {
             context.pop(context);
+            context.goNamed("auth");
           }
         },
         child: const Text("Delete", style: TextStyle(color: Colors.red)),

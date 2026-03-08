@@ -1,4 +1,3 @@
-import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +7,7 @@ import 'package:task_companion/features/profiles/providers/profiles_provider.dar
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/home/widgets/home_drawer_menu.dart';
 import 'package:task_companion/features/home/widgets/project_list.dart';
+import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 import 'package:task_companion/features/projects/widgets/create_project.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
@@ -25,13 +25,10 @@ class _HomeState extends ConsumerState<Home> {
       leading: Builder(
         builder: (context) => GestureDetector(
           onTap: () => Scaffold.of(context).openDrawer(),
-          child: Padding(
-            padding: EdgeInsetsGeometry.only(left: 10),
-            child: FastCachedImage(url: user.avatarUrl),
-          ),
+          child: ProfilePicture(avatarUrl: user.avatarUrl),
         ),
       ),
-      title: Text("Home"),
+      title: Text("Projects"),
       actions: [
         Stack(
           children: [

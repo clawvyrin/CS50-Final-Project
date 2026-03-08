@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:task_companion/features/conversations/models/conversation_participant_model.dart';
+import 'package:task_companion/features/conversations/models/linked_message_model.dart';
 import 'package:task_companion/features/tasks/models/linked_task_model.dart';
 
 part 'conversation_model.freezed.dart';
@@ -13,6 +14,8 @@ abstract class Conversation with _$Conversation {
     required LinkedTaskData? task,
     required String title,
     @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
+    @JsonKey(name: 'last_message') LinkedMessageData? lastMessage,
     @Default([]) List<ConversationParticipant>? participants,
   }) = _Conversation;
 

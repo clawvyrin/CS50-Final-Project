@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/authentication/screens/auth_method.dart';
 import 'package:task_companion/features/authentication/screens/sign_in.dart';
+import 'package:task_companion/features/conversations/screens/conversation_screen.dart';
 import 'package:task_companion/features/conversations/screens/show_conversations.dart';
 import 'package:task_companion/features/home/screens/home.dart';
 import 'package:task_companion/features/authentication/screens/sign_up.dart';
@@ -13,7 +14,6 @@ import 'package:task_companion/features/notifications/screens/notifications.dart
 import 'package:task_companion/features/projects/screens/project_dashboard.dart';
 import 'package:task_companion/features/search/screens/search.dart';
 import 'package:task_companion/features/settings/screens/settings.dart';
-import 'package:task_companion/features/tasks/screens/task_conversation_page.dart';
 import 'package:task_companion/features/tasks/screens/task_details.dart';
 
 late GoTrueClient authClient;
@@ -65,29 +65,6 @@ class AppRouter {
             routes: [],
           ),
           GoRoute(
-            path: 'project/:projectId/task/:taskId',
-            name: 'tasks',
-            builder: (context, state) {
-              final taskId = state.pathParameters['taskId'];
-              final projectId = state.pathParameters['projectId'];
-              return TaskConversationPage(
-                taskId: taskId!,
-                projectId: projectId!,
-              );
-            },
-            routes: [
-              GoRoute(
-                path: 'task_details',
-                name: 'task_details',
-                builder: (context, state) {
-                  final taskId = state.pathParameters['taskId'];
-                  final projectId = state.pathParameters['projectId'];
-                  return TaskDetails(taskId: taskId!, projectId: projectId!);
-                },
-              ),
-            ],
-          ),
-          GoRoute(
             path: 'notifications',
             name: 'notifications',
             builder: (context, state) => NotificationsPage(),
@@ -96,6 +73,30 @@ class AppRouter {
             path: 'conversations',
             name: 'conversations',
             builder: (context, state) => ShowConversations(),
+            routes: [
+              GoRoute(
+                path: "conversation/:conversationId",
+                name: "conversation",
+                builder: (context, state) {
+                  final conversationId = state.pathParameters['conversationId'];
+                  return ConversationScreen(conversationId: conversationId!);
+                },
+                routes: [
+                  GoRoute(
+                    path: 'project/:projectId/task/:taskId',
+                    name: 'task_details',
+                    builder: (context, state) {
+                      final taskId = state.pathParameters['taskId'];
+                      final projectId = state.pathParameters['projectId'];
+                      return TaskDetails(
+                        taskId: taskId!,
+                        projectId: projectId!,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
           ),
           GoRoute(
             path: 'search',

@@ -9,7 +9,7 @@ abstract class ConversationParticipant with _$ConversationParticipant {
   @JsonSerializable(explicitToJson: true)
   const factory ConversationParticipant({
     @JsonKey(name: 'conversation_id') required String conversationId,
-    required LinkedProfileData participant,
+    required LinkedProfileData user,
   }) = _ConversationParticipant;
 
   factory ConversationParticipant.fromJson(Map<String, dynamic> json) =>

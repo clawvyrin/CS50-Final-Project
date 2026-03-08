@@ -26,7 +26,7 @@ class Settings {
       theme: json["theme"] ?? "system",
       language: json["language"] ?? "en",
       mutedNotifications: MutedNotifications.fromJson(
-        json["mute_notifications_from"],
+        json["mute_notifications_from"] ?? {},
       ),
     );
   }

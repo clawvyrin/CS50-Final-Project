@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
+import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
 import 'package:task_companion/features/notifications/models/notification_model.dart';
 import 'package:task_companion/features/notifications/providers/notifications_provider.dart';
 
@@ -15,7 +17,7 @@ class NotificationsPage extends ConsumerWidget {
       appBar: AppBar(title: const Text("Notifications")),
       body: notificationsAsync.when(
         data: (list) => list.isEmpty
-            ? const Center(child: Text("Aucune notification"))
+            ? const Center(child: Text("No notifications"))
             : ListView.builder(
                 itemCount: list.length,
                 itemBuilder: (context, index) {
@@ -38,8 +40,8 @@ class NotificationsPage extends ConsumerWidget {
                   );
                 },
               ),
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text("Erreur: $e")),
+        loading: () => OnLoading(),
+        error: (e, _) => OnError(e: e),
       ),
     );
   }

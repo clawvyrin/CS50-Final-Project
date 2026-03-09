@@ -12,35 +12,35 @@ class ShowConversations extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final inboxAsync = ref.watch(inboxProvider);
 
-    return inboxAsync.when(
-      data: (conversations) {
-        return Scaffold(
-          appBar: AppBar(title: Text("Conversations")),
-          body: ListView.builder(
-            itemCount: conversations.length,
-            itemBuilder: (context, index) {
-              final conversation = conversations[index];
-              return ListTile(
-                title: Text(conversation.title),
-                subtitle: Text(conversation.lastMessage!.sentAt.toString()),
-                trailing: CircleAvatar(
-                  backgroundColor: conversation.lastMessage!.seenAt != null
-                      ? Colors.transparent
-                      : Colors.blue,
-                ),
-                onTap: () {
-                  context.goNamed(
-                    "conversation",
-                    pathParameters: {"conversationId": conversation.id},
+    return Scaffold(
+      appBar: AppBar(title: Text("Conversations")),
+      body: inboxAsync.when(
+        data: (list) => list.isEmpty
+            ? const Center(child: Text("No conversations"))
+            : ListView.builder(
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final conversation = list[index];
+                  return ListTile(
+                    title: Text(conversation.title),
+                    subtitle: Text(conversation.lastMessage!.sentAt.toString()),
+                    trailing: CircleAvatar(
+                      backgroundColor: conversation.lastMessage!.seenAt != null
+                          ? Colors.transparent
+                          : Colors.blue,
+                    ),
+                    onTap: () {
+                      context.goNamed(
+                        "conversation",
+                        pathParameters: {"conversationId": conversation.id},
+                      );
+                    },
                   );
                 },
-              );
-            },
-          ),
-        );
-      },
-      error: (e, _) => OnError(e: e),
-      loading: () => OnLoading(),
+              ),
+        loading: () => OnLoading(),
+        error: (e, _) => OnError(e: e),
+      ),
     );
   }
 }

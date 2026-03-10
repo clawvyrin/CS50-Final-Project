@@ -10,10 +10,16 @@ final taskDetailsProvider = FutureProvider.family<Task?, Map<String, String>>((
   ref,
   data,
 ) async {
-  return await TaskService().getTaskDetails(
-    projectId: data["projectId"]!,
-    taskId: data["taskId"]!,
-  );
+  final supabase = ref.read(supabaseProvider);
+
+  final response = await supabase
+      .from("task_view")
+      .select()
+      .eq('id', data["taskId"]!)
+      .eq('project_id', data["projectId"]!)
+      .maybeSingle();
+
+  return Task.fromJson(response!);
 });
 
 final taskActionsProvider = AsyncNotifierProvider<TaskActionsNotifier, void>(

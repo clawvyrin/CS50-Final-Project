@@ -66,7 +66,7 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
     });
 
     final initialMessages = await _fetchFromService(offset: 0);
-    _hasMore = true;
+    _hasMore = initialMessages.length == _pageSize;
 
     _listenToNewMessages();
 

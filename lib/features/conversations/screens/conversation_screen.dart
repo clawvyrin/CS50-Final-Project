@@ -55,50 +55,50 @@ class ConversationScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .read(inboxProvider)
-        .when(
-          data: (conversations) {
-            final conversation = conversations
-                .where((conv) => conv.id == conversationId)
-                .first;
+    final inboxAsync = ref.watch(inboxProvider);
 
-            return Scaffold(
-              appBar: AppBar(
-                title: ListTile(
-                  title: Text(conversation.title),
-                  onTap: () {
-                    if (conversation.task != null) {
-                      context.goNamed(
-                        "task_details",
-                        pathParameters: {
-                          "projectId": conversation.task!.project.id,
-                          "taskId": conversation.task!.id,
-                        },
-                      );
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (context) => ParticipantAlertDialog(
-                          participant: conversation.participants
-                              .where((p) => p.user.id != AuthServices.id)
-                              .first,
-                        ),
-                      );
-                    }
-                  },
-                ),
-              ),
-              body: Column(
-                children: [
-                  Expanded(child: MessageList(conversationId: conversationId)),
-                  _buildMessageInput(ref, context),
-                ],
-              ),
-            );
-          },
-          error: (e, _) => OnError(e: e),
-          loading: () => OnLoading(),
+    return inboxAsync.when(
+      data: (conversations) {
+        final conversation = conversations
+            .where((conv) => conv.id == conversationId)
+            .first;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: ListTile(
+              title: Text(conversation.title),
+              onTap: () {
+                if (conversation.task != null) {
+                  context.pushNamed(
+                    "task_details",
+                    pathParameters: {
+                      "projectId": conversation.task!.project.id,
+                      "taskId": conversation.task!.id,
+                    },
+                  );
+                } else {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ParticipantAlertDialog(
+                      participant: conversation.participants
+                          .where((p) => p.user.id != AuthServices.id)
+                          .first,
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
+          body: Column(
+            children: [
+              Expanded(child: MessageList(conversationId: conversationId)),
+              _buildMessageInput(ref, context),
+            ],
+          ),
         );
+      },
+      error: (e, _) => OnError(e: e),
+      loading: () => OnLoading(),
+    );
   }
 }

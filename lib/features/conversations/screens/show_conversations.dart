@@ -23,9 +23,11 @@ class ShowConversations extends ConsumerWidget {
                   final conversation = list[index];
                   return ListTile(
                     title: Text(conversation.title),
-                    subtitle: Text(conversation.lastMessage!.sentAt.toString()),
+                    subtitle: Text(
+                      conversation.lastMessage?.sentAt.toString() ?? '',
+                    ),
                     trailing: CircleAvatar(
-                      backgroundColor: conversation.lastMessage!.seenAt != null
+                      backgroundColor: conversation.lastMessage?.seenAt != null
                           ? Colors.transparent
                           : Colors.blue,
                     ),

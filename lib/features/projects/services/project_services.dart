@@ -78,11 +78,6 @@ class ProjectServices {
           .eq('id', id)
           .limit(1)
           .maybeSingle();
-
-      // final response = await supabase.rpc(
-      //   'get_project_details',
-      //   params: {'p_id': id},
-      // );
       if (response == null) return null;
 
       return Project.fromJson(response);

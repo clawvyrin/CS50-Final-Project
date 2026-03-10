@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:task_companion/core/utils/string_extensions.dart';
+import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 import 'package:task_companion/features/tasks/models/task_model.dart';
 
 class TasksTab extends StatelessWidget {
@@ -12,8 +15,18 @@ class TasksTab extends StatelessWidget {
       itemBuilder: (context, index) {
         final t = tasks[index];
         return ExpansionTile(
-          leading: CircleAvatar(child: Text(t.title[0])),
-          title: Text(t.title),
+          trailing: IconButton(
+            onPressed: () => context.pushNamed(
+              'conversation',
+              pathParameters: {'conversationId': t.conversationId},
+            ),
+            icon: Icon(Icons.open_in_new),
+          ),
+          leading: ProfilePicture(avatarUrl: t.assignee.avatarUrl!),
+          title: Text(
+            t.title.capitalize(),
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           subtitle: Text("Status: ${t.status.name}"),
           children: [
             ListTile(title: Text("Description: ${t.description ?? 'N/A'}")),

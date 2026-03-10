@@ -62,6 +62,7 @@ class PushNotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.payload != null) {
           final data = jsonDecode(response.payload!);
+          // On transforme le payload en modèle
           final notif = NotificationModel.fromJson(data);
 
           _handleGlobalNavigation(notif);
@@ -76,6 +77,7 @@ class PushNotificationService {
         ?.createNotificationChannel(androidChannel);
 
     FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
+    _fcm.onTokenRefresh.listen(_saveTokenToDatabase);
   }
 
   void _handleGlobalNavigation(NotificationModel notif) {
@@ -95,15 +97,13 @@ class PushNotificationService {
     }
   }
 
-  Future onUserLoggedIn(BuildContext context, WidgetRef ref) async {
+  Future onUserLoggedIn(WidgetRef ref) async {
     try {
+      final context = navigatorKey.currentContext!;
+
       await _fcm.getInitialMessage().then((message) async {
         if (context.mounted && message != null) {
-          onNotificationClicked(
-            context,
-            ref,
-            NotificationModel.fromJson(message.data),
-          );
+          onNotificationClicked(ref, NotificationModel.fromJson(message.data));
         }
       });
 
@@ -113,11 +113,7 @@ class PushNotificationService {
 
       FirebaseMessaging.onMessageOpenedApp.listen((message) async {
         if (context.mounted) {
-          onNotificationClicked(
-            context,
-            ref,
-            NotificationModel.fromJson(message.data),
-          );
+          onNotificationClicked(ref, NotificationModel.fromJson(message.data));
         }
       });
     } catch (e, st) {
@@ -151,19 +147,17 @@ class PushNotificationService {
     );
   }
 
-  void onNotificationClicked(
-    BuildContext context,
-    WidgetRef ref,
-    NotificationModel notif,
-  ) {
+  void onNotificationClicked(WidgetRef ref, NotificationModel notif) {
     ref.read(notificationActionsProvider.notifier).markAsRead(notif.id);
+
+    final router = GoRouter.of(navigatorKey.currentContext!);
 
     final data = notif.metaData;
 
     switch (notif.type) {
       case 'report_pending':
       case 'task_assignment':
-        context.pushNamed(
+        router.pushNamed(
           'task_details',
           pathParameters: {
             'projectId': data!['project_id'],
@@ -176,7 +170,7 @@ class PushNotificationService {
       case 'project_collaboration_request':
         if (notif.status == NotificationStatus.pending) {
           showDialog(
-            context: context,
+            context: navigatorKey.currentContext!,
             builder: (context) => NotificationActionDialog(
               title: notif.type.replaceAll('_', ' ').capitalize(),
               content: "Accept invitation from ${notif.notifier.displayName} ?",
@@ -186,7 +180,7 @@ class PushNotificationService {
             ),
           );
         } else {
-          context.pushNamed(
+          router.pushNamed(
             'user_profile',
             pathParameters: {'userId': notif.notifier.id},
           );

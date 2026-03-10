@@ -51,7 +51,7 @@ class _HomeState extends ConsumerState<Home> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      PushNotificationService().onUserLoggedIn(context, ref);
+      PushNotificationService().onUserLoggedIn(ref);
     });
   }
 

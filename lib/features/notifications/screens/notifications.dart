@@ -30,7 +30,7 @@ class NotificationsPage extends ConsumerWidget {
                         ? const Icon(Icons.circle, color: Colors.blue, size: 12)
                         : null,
                     onTap: () => PushNotificationService()
-                        .onNotificationClicked(context, ref, notif),
+                        .onNotificationClicked(ref, notif),
                   );
                 },
               ),

@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/features/notifications/models/notification_model.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
+import 'package:task_companion/features/projects/providers/project_providers.dart';
 
 final notificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
   final supabaseClient = ref.watch(supabaseProvider);
@@ -59,8 +60,29 @@ class NotificationActionsNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       await supabaseClient
           .from('notifications')
-          .update({'is_read': true})
+          .update({'seen_at': DateTime.now()})
           .eq('notified_id', userId);
+    });
+  }
+
+  Future handleRequest(NotificationModel notification, bool accept) async {
+    final supabaseClient = ref.read(supabaseProvider);
+    final userId = supabaseClient.auth.currentUser?.id;
+
+    if (userId == null) return;
+
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await supabaseClient
+          .from('notifications')
+          .update({
+            'status': accept ? 'accepted' : 'denied',
+            'seen_at': DateTime.now(),
+          })
+          .eq('notified_id', userId);
+
+      ref.invalidate(projectsListProvider);
+      ref.invalidate(notificationsProvider);
     });
   }
 }

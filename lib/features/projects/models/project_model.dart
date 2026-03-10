@@ -19,6 +19,7 @@ abstract class Project with _$Project {
     required String name,
     String? description,
     required LinkedProfileData owner,
+    @JsonKey(unknownEnumValue: ProjectStatus.onGoing)
     required ProjectStatus status,
     @JsonKey(name: 'background_picture_url') String? backgroundPictureUrl,
     @JsonKey(name: 'created_at') DateTime? createdAt,

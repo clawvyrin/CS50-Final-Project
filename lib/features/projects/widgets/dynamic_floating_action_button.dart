@@ -1,8 +1,9 @@
-import 'package:fast_cached_network_image/fast_cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 import 'package:task_companion/features/projects/models/project_model.dart';
+import 'package:task_companion/features/projects/providers/project_providers.dart';
 import 'package:task_companion/features/tasks/models/task_model.dart';
 import 'package:task_companion/features/tasks/providers/tasks_provider.dart';
 
@@ -28,79 +29,113 @@ class ProjectFloatingActionButton extends ConsumerWidget {
 
     String? selectedAssigneeId;
     List<String> selectedDependencies = [];
+    DateTime? furthestDepenceyDeadline;
 
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           title: const Text("New Task"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: titleController,
-                decoration: const InputDecoration(labelText: "Title"),
-              ),
-              TextField(
-                controller: descController,
-                decoration: const InputDecoration(labelText: "Description"),
-              ),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: "Assigned to"),
-                // ignore: deprecated_member_use
-                value: selectedAssigneeId,
-                items: project.members
-                    ?.map(
-                      (m) => DropdownMenuItem(
-                        value: m.user.id,
-                        child: ListTile(
-                          leading: FastCachedImage(url: m.user.avatarUrl!),
-                          title: Text(m.user.displayName),
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (val) =>
-                    setDialogState(() => selectedAssigneeId = val),
-              ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: titleController,
+                    decoration: const InputDecoration(labelText: "Title"),
+                  ),
+                  TextField(
+                    controller: descController,
+                    decoration: const InputDecoration(labelText: "Description"),
+                  ),
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: "Assigned to"),
+                    // ignore: deprecated_member_use
+                    value: selectedAssigneeId,
+                    items: project.members
+                        ?.map(
+                          (m) => DropdownMenuItem(
+                            value: m.user.id,
+                            child: SizedBox(
+                              width: 200,
+                              child: ListTile(
+                                leading: SizedBox(
+                                  height: 30,
+                                  width: 30,
+                                  child: ProfilePicture(
+                                    avatarUrl: m.user.avatarUrl!,
+                                  ),
+                                ),
+                                title: Text(m.user.displayName),
+                              ),
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (val) =>
+                        setDialogState(() => selectedAssigneeId = val),
+                  ),
 
-              const SizedBox(height: 10),
-              const Text(
-                "Depends on :",
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-              Wrap(
-                spacing: 8,
-                children: (project.tasks ?? []).map((t) {
-                  final isSelected = selectedDependencies.contains(t.id);
-                  return FilterChip(
-                    label: Text(t.title, style: const TextStyle(fontSize: 10)),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setDialogState(() {
-                        selected
-                            ? selectedDependencies.add(t.id)
-                            : selectedDependencies.remove(t.id);
-                      });
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    children: (project.tasks ?? []).map((t) {
+                      final isSelected = selectedDependencies.contains(t.id);
+                      return FilterChip(
+                        label: Text(
+                          t.title,
+                          style: const TextStyle(fontSize: 10),
+                        ),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setDialogState(() {
+                            selected
+                                ? selectedDependencies.add(t.id)
+                                : selectedDependencies.remove(t.id);
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                  ListTile(
+                    title: const Text("Start date"),
+                    subtitle: Text(selectedDate.toString().split(' ')[0]),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate:
+                            furthestDepenceyDeadline ?? project.startDate!,
+                        lastDate: project.endDate!,
+                      );
+                      if (date != null) {
+                        setDialogState(() => selectedDate = date);
+                      }
                     },
-                  );
-                }).toList(),
+                  ),
+                  ListTile(
+                    title: const Text("Deadline"),
+                    subtitle: Text(selectedDate.toString().split(' ')[0]),
+                    trailing: const Icon(Icons.calendar_today),
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate:
+                            furthestDepenceyDeadline ?? project.startDate!,
+                        lastDate: project.endDate!,
+                      );
+                      if (date != null) {
+                        setDialogState(() => selectedDate = date);
+                      }
+                    },
+                  ),
+                ],
               ),
-              ListTile(
-                title: const Text("Deadline"),
-                subtitle: Text(selectedDate.toString().split(' ')[0]),
-                trailing: const Icon(Icons.calendar_today),
-                onTap: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: selectedDate,
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2030),
-                  );
-                  if (date != null) setDialogState(() => selectedDate = date);
-                },
-              ),
-            ],
+            ),
           ),
           actions: [
             TextButton(
@@ -216,7 +251,7 @@ class ProjectFloatingActionButton extends ConsumerWidget {
             ),
             ElevatedButton(
               onPressed: tempActivities.isEmpty
-                  ? null 
+                  ? null
                   : () async {
                       // await ref
                       //     .read(taskActionsProvider.notifier)
@@ -263,13 +298,8 @@ class ProjectFloatingActionButton extends ConsumerWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              onAdded({
-                'description': actDescController.text,
-                'resources': [],
-              });
-              setParentState(
-                () {},
-              ); 
+              onAdded({'description': actDescController.text, 'resources': []});
+              setParentState(() {});
               Navigator.pop(context);
             },
             child: const Text("Ajouter"),
@@ -279,6 +309,7 @@ class ProjectFloatingActionButton extends ConsumerWidget {
     );
   }
 
+  // ignore: unused_element
   void _showAddResourceDialog(String projectId, BuildContext context) {
     String selectedType = 'matériel';
     final nameController = TextEditingController();
@@ -326,38 +357,41 @@ class ProjectFloatingActionButton extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Inviter un membre"),
+        title: const Text("Invite collaborator"),
         content: TextField(
           controller: idController,
-          decoration: const InputDecoration(
-            labelText: "ID Utilisateur ou Email",
-          ),
+          decoration: const InputDecoration(labelText: "Full Name"),
         ),
         actions: [/* ... boutons ... */],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    switch (tabController.index) {
-      case 0: // Tasks
+  Widget _buildFAB(int index, BuildContext context, WidgetRef ref) {
+    switch (index) {
+      case 0:
         return FloatingActionButton(
+          key: const ValueKey('add_task'),
           onPressed: () => _showAddTaskDialog(project.id, context, ref),
           child: const Icon(Icons.add_task),
         );
-      case 2: // Resources
+      case 2:
         return FloatingActionButton(
-          onPressed: () => _showAddResourceDialog(project.id, context),
-          child: const Icon(Icons.inventory_2),
-        );
-      case 4: // Members
-        return FloatingActionButton(
+          key: const ValueKey('add_member'),
           onPressed: () => _showAddMemberDialog(project.id, context),
           child: const Icon(Icons.person_add),
         );
       default:
-        return Container();
+        return const SizedBox.shrink();
     }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = ref.watch(currentTabProvider);
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 200),
+      child: _buildFAB(index, context, ref),
+    );
   }
 }

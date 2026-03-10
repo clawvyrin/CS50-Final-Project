@@ -1,11 +1,14 @@
-create or replace function log_new_project()
-returns trigger as $$
-begin
-  insert into public.timeline_events (project_id, user_id, action_type, content)
-  values (new.id, auth.uid(), 'project_created', 'Project "' || new.name || '" created');
-  return new;
-end;
-$$ language plpgsql;
+CREATE OR REPLACE FUNCTION log_new_project()
+RETURNS trigger 
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO public.timeline_events (project_id, user_id, action_type, content)
+  VALUES (NEW.id, auth.uid(), 'project_created', 'Project "' || NEW.name || '" created');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
 create trigger on_project_created_log_event
   after insert on public.projects

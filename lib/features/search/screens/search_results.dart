@@ -10,32 +10,32 @@ class UsersSearchResultsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(userSearchProvider)
-        .when(
-          data: (users) {
-            if (users.isEmpty) {
-              return const Center(child: Text("No user found."));
-            }
+    final userSearchAsync = ref.watch(userSearchProvider);
 
-            return ListView.builder(
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                return ListTile(
-                  leading: CircleAvatar(child: Text(user.displayName)),
-                  title: Text(user.displayName),
-                  onTap: () => context.goNamed(
-                    'direct_chat',
-                    pathParameters: {'userId': user.id},
-                  ),
-                );
-              },
+    return userSearchAsync.when(
+      data: (users) {
+        if (users.isEmpty) {
+          return const Center(child: Text("No user found."));
+        }
+
+        return ListView.builder(
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            final user = users[index];
+            return ListTile(
+              leading: CircleAvatar(child: Text(user.displayName)),
+              title: Text(user.displayName),
+              onTap: () => context.goNamed(
+                'direct_chat',
+                pathParameters: {'userId': user.id},
+              ),
             );
           },
-          error: (e, _) => OnError(e: e),
-          loading: () => OnLoading(),
         );
+      },
+      error: (e, _) => OnError(e: e),
+      loading: () => OnLoading(),
+    );
   }
 }
 
@@ -44,32 +44,32 @@ class ProjectsSearchResultsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(projectSearchProvider)
-        .when(
-          data: (projects) {
-            if (projects.isEmpty) {
-              return const Center(child: Text("No project found."));
-            }
+    final projectSearchAsync = ref.watch(projectSearchProvider);
 
-            return ListView.builder(
-              itemCount: projects.length,
-              itemBuilder: (context, index) {
-                final project = projects[index];
-                return ListTile(
-                  leading: const Icon(Icons.folder_open, color: Colors.blue),
-                  title: Text(project.name),
-                  onTap: () => context.goNamed(
-                    'project_dashboard',
-                    pathParameters: {'projectId': project.id},
-                  ),
-                );
-              },
+    return projectSearchAsync.when(
+      data: (projects) {
+        if (projects.isEmpty) {
+          return const Center(child: Text("No project found."));
+        }
+
+        return ListView.builder(
+          itemCount: projects.length,
+          itemBuilder: (context, index) {
+            final project = projects[index];
+            return ListTile(
+              leading: const Icon(Icons.folder_open, color: Colors.blue),
+              title: Text(project.name),
+              onTap: () => context.goNamed(
+                'project_dashboard',
+                pathParameters: {'projectId': project.id},
+              ),
             );
           },
-          error: (e, _) => OnError(e: e),
-          loading: () => OnLoading(),
         );
+      },
+      error: (e, _) => OnError(e: e),
+      loading: () => OnLoading(),
+    );
   }
 }
 
@@ -78,31 +78,35 @@ class TasksSearchResultsList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return ref
-        .watch(taskSearchProvider)
-        .when(
-          data: (tasks) {
-            if (tasks.isEmpty) {
-              return const Center(child: Text("No task found."));
-            }
+    final taskSearchAsync = ref.watch(taskSearchProvider);
 
-            return ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                return ListTile(
-                  leading: const Icon(Icons.folder_open, color: Colors.blue),
-                  title: Text(task.title),
-                  onTap: () => context.goNamed(
-                    'project_dashboard',
-                    pathParameters: {'projectId': task.project.id},
-                  ),
-                );
-              },
+    return taskSearchAsync.when(
+      data: (tasks) {
+        if (tasks.isEmpty) {
+          return const Center(child: Text("No task found."));
+        }
+
+        return ListView.builder(
+          itemCount: tasks.length,
+          itemBuilder: (context, index) {
+            final task = tasks[index];
+            return ListTile(
+              leading: const Icon(Icons.folder_open, color: Colors.blue),
+              title: Text(task.title),
+              subtitle: Text(task.project.name),
+              onTap: () => context.goNamed(
+                'task_details',
+                pathParameters: {
+                  'projectId': task.project.id,
+                  "taskId": task.id,
+                },
+              ),
             );
           },
-          error: (e, _) => OnError(e: e),
-          loading: () => OnLoading(),
         );
+      },
+      error: (e, _) => OnError(e: e),
+      loading: () => OnLoading(),
+    );
   }
 }

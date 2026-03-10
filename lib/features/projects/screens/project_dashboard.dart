@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/projects/providers/project_providers.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
@@ -25,87 +26,91 @@ class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-    _tabController.addListener(() => setState(() {}));
+    _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        ref.read(currentTabProvider.notifier).state = _tabController.index;
+      }
+    });
   }
 
   @override
-  Widget build(BuildContext context) => ref
-      .watch(projectDetailsProvider(widget.projectId))
-      .when(
-        error: (e, _) => OnError(e: e),
-        loading: () => const OnLoading(),
-        data: (project) => project == null
-            ? Container()
-            : DefaultTabController(
-                length: 3,
-                child: Scaffold(
-                  appBar: AppBar(
-                    title: ListTile(
-                      title: Text(
-                        project.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final projectDetailsAsync = ref.watch(
+      projectDetailsProvider(widget.projectId),
+    );
+
+    return projectDetailsAsync.when(
+      error: (e, _) => OnError(e: e),
+      loading: () => const OnLoading(),
+      data: (project) => project == null
+          ? const SizedBox()
+          : Scaffold(
+              body: NestedScrollView(
+                headerSliverBuilder: (context, innerBoxIsScrolled) {
+                  return [
+                    SliverAppBar(
+                      expandedHeight: 380,
+                      pinned: true,
+                      floating: false,
+                      title: Text(project.name),
+                      actions: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {},
                         ),
-                      ),
-                      subtitle: project.description != null
-                          ? Text(
-                              project.description!,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.normal,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            )
-                          : Container(),
-                    ),
-                    actions: [
-                      IconButton(
-                        icon: const Icon(Icons.search),
-                        onPressed: () {},
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {},
-                      ),
-                    ],
-                    bottom: const TabBar(
-                      tabs: [
-                        Tab(text: 'Tasks', icon: Icon(Icons.list)),
-                        Tab(text: 'Timeline', icon: Icon(Icons.timeline)),
-                        Tab(text: 'Team', icon: Icon(Icons.group)),
                       ],
-                    ),
-                  ),
-                  body: Column(
-                    children: [
-                      SizedBox(
-                        height: 200,
-                        child: GanttChartWidget(
-                          tasks: project.tasks ?? [],
-                          projectStart: project.startDate!,
-                        ),
-                      ),
-                      MilestoneRow(milestones: project.milestones ?? []),
-                      const Divider(height: 1),
-                      Expanded(
-                        child: TabBarView(
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: Column(
+                          mainAxisAlignment: MainAxisAlignment.end,
                           children: [
-                            TasksTab(tasks: project.tasks ?? []),
-                            TimelineTab(events: project.timeline ?? []),
-                            MembersTab(projectId: project.id),
+                            const SizedBox(height: 80),
+                            SizedBox(
+                              height: 200,
+                              child: GanttChartWidget(
+                                tasks: project.tasks ?? [],
+                                projectStart: project.startDate!,
+                              ),
+                            ),
+                            MilestoneRow(milestones: project.milestones ?? []),
+                            const SizedBox(height: 50),
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  floatingActionButton: ProjectFloatingActionButton(
-                    project: project,
-                    tabController: _tabController,
-                  ),
+                      bottom: TabBar(
+                        controller: _tabController,
+                        tabs: [
+                          Tab(text: 'Tasks', icon: Icon(Icons.list)),
+                          Tab(text: 'Timeline', icon: Icon(Icons.timeline)),
+                          Tab(text: 'Team', icon: Icon(Icons.group)),
+                        ],
+                      ),
+                    ),
+                  ];
+                },
+                body: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    TasksTab(tasks: project.tasks ?? []),
+                    TimelineTab(events: project.timeline ?? []),
+                    MembersTab(
+                      projectId: project.id,
+                      isOwner: AuthServices.id == project.owner.id,
+                    ),
+                  ],
                 ),
               ),
-      );
+              floatingActionButton: ProjectFloatingActionButton(
+                project: project,
+                tabController: _tabController,
+              ),
+            ),
+    );
+  }
 }

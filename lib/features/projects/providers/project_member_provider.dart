@@ -23,8 +23,8 @@ class ProjectMembersNotifier extends AsyncNotifier<List<ProjectMember>> {
   Future<List<ProjectMember>> _fetchMembers() async {
     final supabase = ref.read(supabaseProvider);
     final response = await supabase
-        .from('project_members')
-        .select('*, profiles(display_name, avatar_url)')
+        .from('project_member_view')
+        .select()
         .eq('project_id', projectId);
 
     return (response as List)

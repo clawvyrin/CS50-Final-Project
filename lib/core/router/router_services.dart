@@ -81,22 +81,17 @@ class AppRouter {
                   final conversationId = state.pathParameters['conversationId'];
                   return ConversationScreen(conversationId: conversationId!);
                 },
-                routes: [
-                  GoRoute(
-                    path: 'project/:projectId/task/:taskId',
-                    name: 'task_details',
-                    builder: (context, state) {
-                      final taskId = state.pathParameters['taskId'];
-                      final projectId = state.pathParameters['projectId'];
-                      return TaskDetails(
-                        taskId: taskId!,
-                        projectId: projectId!,
-                      );
-                    },
-                  ),
-                ],
               ),
             ],
+          ),
+          GoRoute(
+            path: 'project/:projectId/task/:taskId',
+            name: 'task_details',
+            builder: (context, state) {
+              final taskId = state.pathParameters['taskId'];
+              final projectId = state.pathParameters['projectId'];
+              return TaskDetails(taskId: taskId!, projectId: projectId!);
+            },
           ),
           GoRoute(
             path: 'search',

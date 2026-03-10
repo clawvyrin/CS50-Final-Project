@@ -1,3 +1,19 @@
+CREATE OR REPLACE VIEW task_data_view AS
+SELECT
+    t.id,
+    t.title,
+    t.description,
+    jsonb_build_object(
+        'id', p.id,
+        'name', p.name,
+        'status', p.status,
+        'start_date', p.start_date,
+        'end_date', p.end_date
+    ) AS project
+
+FROM tasks t
+JOIN projects p ON p.id = t.project_id;
+
 CREATE OR REPLACE VIEW task_view AS
 SELECT
     t.id,
@@ -5,7 +21,10 @@ SELECT
     jsonb_build_object(
         'id', p.id,
         'name', p.name,
-        'description', p.description
+        'description', p.description,
+        'status', p.status,
+        'start_date', p.start_date,
+        'end_date', p.end_date
     ) AS project,
 
     (
@@ -72,7 +91,16 @@ SELECT
         '[]'::jsonb
     ) AS dependencies,
 
-    t.due_date
+    t.due_date,
+
+    
+    COALESCE(
+    (
+        SELECT COUNT(*)
+        FROM daily_task_report_view dtrv
+        WHERE is_signed = false
+        AND (dtrv.task->>'id')::uuid = t.id
+    ), 0) AS pending_reports_count
 
 FROM tasks t
 JOIN projects p ON p.id = t.project_id

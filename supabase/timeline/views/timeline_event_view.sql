@@ -6,7 +6,8 @@ SELECT
     jsonb_build_object(
         'id', p.id,
         'name', p.name,
-        'description', p.description
+        'description', p.description,
+        'status', p.status
     ) AS project,
 
     -- Nested user object

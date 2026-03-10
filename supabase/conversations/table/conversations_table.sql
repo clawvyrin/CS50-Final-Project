@@ -3,7 +3,7 @@ create table public.conversations (
     project_id uuid references public.projects(id) on delete cascade,
     task_id uuid references public.tasks(id) on delete cascade,
     title text not null,
-    updated_at timestamptz,
+    updated_at timestamptz  default now(),
     created_at timestamptz default now()
 );
 

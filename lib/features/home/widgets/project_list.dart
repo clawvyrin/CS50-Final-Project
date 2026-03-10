@@ -11,20 +11,20 @@ class ProjectList extends ConsumerWidget {
   const ProjectList({super.key});
 
   Widget list(WidgetRef ref) {
-    return ref
-        .watch(projectsListProvider)
-        .when(
-          data: (projects) {
-            return ListView.builder(
-              itemCount: projects.length,
-              itemBuilder: (context, index) {
-                return ProjectCard(project: projects[index]);
-              },
-            );
+    final projectListAsync = ref.watch(projectsListProvider);
+
+    return projectListAsync.when(
+      data: (projects) {
+        return ListView.builder(
+          itemCount: projects.length,
+          itemBuilder: (context, index) {
+            return ProjectCard(project: projects[index]);
           },
-          error: (e, _) => OnError(e: e),
-          loading: () => const OnLoading(),
         );
+      },
+      error: (e, _) => OnError(e: e),
+      loading: () => const OnLoading(),
+    );
   }
 
   @override

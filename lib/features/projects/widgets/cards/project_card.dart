@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:task_companion/features/projects/models/project_model.dart';
+import 'package:task_companion/features/projects/models/linked_project_model.dart';
 
 class ProjectCard extends StatelessWidget {
-  final Project project;
+  final LinkedProjectData project;
   const ProjectCard({super.key, required this.project});
 
   @override
@@ -22,7 +22,7 @@ class ProjectCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           context.goNamed(
-            "project_dashboard",
+            "project",
             pathParameters: {"projectId": project.id},
           );
         },

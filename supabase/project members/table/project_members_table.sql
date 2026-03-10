@@ -6,7 +6,7 @@ create table public.project_members (
     user_id uuid references public.profiles(id) on delete cascade,
     role project_role default 'viewer', 
     status assignment_status default 'accepted',
-    job_description text,
+    job_description text defatul 'none',
     created_at timestamptz default now()
 );
 

@@ -1,20 +1,33 @@
-create or replace function add_task_assignee_notification()
-returns trigger as $$
-begin
-    insert into public.notifications (type, notifier_id, notified_id, meta_data)
-    values (
+CREATE OR REPLACE FUNCTION add_task_assignee_notification()
+RETURNS trigger AS $$
+DECLARE
+    v_conversation_id uuid;
+BEGIN
+
+    -- create notification
+    INSERT INTO public.notifications (type, notifier_id, notified_id, meta_data)
+    VALUES (
         'task_assignment',
         auth.uid(),
-        new.assigned_to,
+        NEW.assigned_to,
         jsonb_build_object(
-            'project_id', new.project_id,
-            'task_id', new.id,
-            'task_title', new.title
+            'project_id', NEW.project_id,
+            'task_id', NEW.id,
+            'task_title', NEW.title
         )
     );
-    return new;
-end;
-$$ language plpgsql security definer;
+
+    -- create conversation and capture its id
+    INSERT INTO public.conversations (title, project_id, task_id)
+    VALUES (
+        NEW.title,
+        NEW.project_id,
+        NEW.id
+    );
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 create trigger on_task_created
     after insert on public.tasks

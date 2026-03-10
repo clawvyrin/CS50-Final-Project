@@ -1,12 +1,41 @@
+import 'package:freezed_annotation/freezed_annotation.dart';
+
 enum ProjectRole { admin, editor, viewer }
 
 enum Weekday { mon, tue, wed, thu, fri, sat, sun }
 
-enum ProjectStatus { hiatus, onGoing, done }
+enum ProjectStatus {
+  @JsonValue('hiatus')
+  hiatus,
 
-enum TaskStatus { todo, inProgress, done }
+  @JsonValue('on_going')
+  onGoing,
 
-enum MilestoneStatus { onTrack, achieved, postponed }
+  @JsonValue('done')
+  done,
+}
+
+enum TaskStatus {
+  @JsonValue('todo') // Optionnel si la DB utilise 'todo'
+  todo,
+
+  @JsonValue('in_progress')
+  inProgress,
+
+  @JsonValue('done')
+  done,
+}
+
+enum MilestoneStatus {
+  @JsonValue('on_track')
+  onTrack,
+
+  @JsonValue('achieved')
+  achieved,
+
+  @JsonValue('postponed')
+  postponed,
+}
 
 enum RequestStatus { accepted, pending, denied }
 
@@ -21,5 +50,3 @@ enum NotificationStatus {
   clicked,
   dismissed,
 }
-
-

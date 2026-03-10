@@ -1,13 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/log/logger.dart';
-import 'package:task_companion/features/authentication/services/auth_services.dart';
+import 'package:task_companion/features/projects/models/linked_project_model.dart';
 import 'package:task_companion/features/projects/models/project_model.dart';
 
 class ProjectServices {
   final supabase = Supabase.instance.client;
 
-  Future<List<Project>> getUserProjects({
+  Future<List<LinkedProjectData>> getUserProjects({
     DateTime? anchor,
     int limit = 10,
   }) async {
@@ -17,15 +17,15 @@ class ProjectServices {
       final timestamp =
           anchor?.toIso8601String() ?? DateTime.now().toIso8601String();
 
-      final response = await supabase
-          .from('project_view')
+      final test = await supabase
+          .from('projects')
           .select()
-          .eq('owner->>id', AuthServices.id!)
-          .gt('created_at', timestamp)
+          .lt('created_at', timestamp)
           .order('created_at', ascending: false)
           .limit(limit);
 
-      return response.map((json) => Project.fromJson(json)).toList();
+      appLogger.i("Fetched ${test.length} projects");
+      return test.map((json) => LinkedProjectData.fromJson(json)).toList();
     } catch (e, st) {
       appLogger.e(
         "Error getting user projects",
@@ -37,7 +37,7 @@ class ProjectServices {
     }
   }
 
-  Future<Project?> createProject({
+  Future<LinkedProjectData?> createProject({
     required String name,
     required String description,
     required DateTime start,
@@ -46,16 +46,17 @@ class ProjectServices {
     try {
       appLogger.i("Attempt to create project");
 
-      final response = await supabase.rpc(
-        'create_project',
-        params: {
-          'p_name': name,
-          'p_desc': description,
-          'p_start': start.toIso8601String(),
-          'p_end': end.toIso8601String(),
-        },
-      );
-      return Project.fromJson(response);
+      final response = await supabase
+          .from("projects")
+          .insert({
+            'name': name,
+            'description': description,
+            'start_date': start.toIso8601String(),
+            'end_date': end.toIso8601String(),
+          })
+          .select()
+          .single();
+      return LinkedProjectData.fromJson(response);
     } catch (e, st) {
       appLogger.e(
         "Error creating project",
@@ -71,10 +72,18 @@ class ProjectServices {
     try {
       appLogger.i("Attempt to get project details");
 
-      final response = await supabase.rpc(
-        'get_project_details',
-        params: {'p_id': id},
-      );
+      final response = await supabase
+          .from("project_view")
+          .select()
+          .eq('id', id)
+          .limit(1)
+          .maybeSingle();
+
+      // final response = await supabase.rpc(
+      //   'get_project_details',
+      //   params: {'p_id': id},
+      // );
+      if (response == null) return null;
 
       return Project.fromJson(response);
     } catch (e, st) {

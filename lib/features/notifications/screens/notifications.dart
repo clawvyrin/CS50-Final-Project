@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/core/utils/string_extensions.dart';
 import 'package:task_companion/features/home/models/enums.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
@@ -44,8 +45,7 @@ class NotificationsPage extends ConsumerWidget {
     BuildContext context, {
     required String title,
     required String content,
-    required VoidCallback onAccept,
-    required VoidCallback onDecline,
+    required Function(bool) onAction,
   }) {
     showDialog(
       context: context,
@@ -53,17 +53,17 @@ class NotificationsPage extends ConsumerWidget {
         title: Text(title),
         content: Text(content),
         actions: [
-          ElevatedButton(
+          TextButton(
             child: const Text("Decline", style: TextStyle(color: Colors.red)),
             onPressed: () {
-              onDecline();
-              context.pop(context);
+              onAction(false);
+              Navigator.pop(context);
             },
           ),
           ElevatedButton(
             onPressed: () {
-              onAccept();
-              context.pop(context);
+              onAction(true);
+              Navigator.pop(context);
             },
             child: const Text("Accept"),
           ),
@@ -105,6 +105,7 @@ class NotificationsPage extends ConsumerWidget {
 
     switch (notif.type) {
       case 'report_pending':
+      case 'task_assignment':
         context.pushNamed(
           'task_details',
           pathParameters: {
@@ -115,38 +116,15 @@ class NotificationsPage extends ConsumerWidget {
         break;
 
       case 'collaboration_request':
-        if (notif.status == NotificationStatus.pending) {
-          _showActionDialog(
-            context,
-            title: "Collaboration Request",
-            content: "Accept invitation from ${notif.notifier.displayName}?",
-            onAccept: () => ref
-                .read(notificationActionsProvider.notifier)
-                .handleRequest(notif, true),
-            onDecline: () => ref
-                .read(notificationActionsProvider.notifier)
-                .handleRequest(notif, false),
-          );
-        } else {
-          context.pushNamed(
-            'user_profile',
-            pathParameters: {'userId': notif.notifier.id},
-          );
-        }
-        break;
-
       case 'project_collaboration_request':
         if (notif.status == NotificationStatus.pending) {
           _showActionDialog(
             context,
-            title: "Project collaboration Request",
-            content: "Accept invitation from ${notif.notifier.displayName}?",
-            onAccept: () => ref
+            title: notif.type.replaceAll('_', ' ').capitalize(),
+            content: "Accept invitation from ${notif.notifier.displayName} ?",
+            onAction: (accepted) => ref
                 .read(notificationActionsProvider.notifier)
-                .handleRequest(notif, true),
-            onDecline: () => ref
-                .read(notificationActionsProvider.notifier)
-                .handleRequest(notif, false),
+                .handleRequest(notif, accepted),
           );
         } else {
           context.pushNamed(
@@ -156,15 +134,8 @@ class NotificationsPage extends ConsumerWidget {
         }
         break;
 
-      case 'task_assignment':
-        context.pushNamed(
-          'task_details',
-          pathParameters: {
-            'projectId': data!['project_id'],
-            'taskId': data['task_id'],
-          },
-        );
-        break;
+      default:
+        debugPrint("Type de notification non géré : ${notif.type}");
     }
   }
 

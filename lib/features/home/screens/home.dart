@@ -2,17 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_platform_widgets/flutter_platform_widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/conversations/widgets/conversations_icon.dart';
+import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
+import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
+import 'package:task_companion/features/home/widgets/home_drawer_menu.dart';
+import 'package:task_companion/features/home/widgets/project_list.dart';
+import 'package:task_companion/features/notifications/services/push_services.dart';
 import 'package:task_companion/features/notifications/widgets/notifications_icon.dart';
 import 'package:task_companion/features/profiles/models/profile_model.dart';
 import 'package:task_companion/features/profiles/providers/profiles_provider.dart';
-import 'package:task_companion/features/authentication/services/auth_services.dart';
-import 'package:task_companion/features/home/widgets/home_drawer_menu.dart';
-import 'package:task_companion/features/home/widgets/project_list.dart';
 import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 import 'package:task_companion/features/projects/widgets/create_project.dart';
-import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
-import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});
@@ -44,6 +45,14 @@ class _HomeState extends ConsumerState<Home> {
 
   void _createNewProject(BuildContext context) {
     showDialog(context: context, builder: (context) => CreateProject());
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PushNotificationService().onUserLoggedIn(context, ref);
+    });
   }
 
   @override

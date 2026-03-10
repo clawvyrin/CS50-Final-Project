@@ -62,10 +62,8 @@ class PushNotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.payload != null) {
           final data = jsonDecode(response.payload!);
-          // On transforme le payload en modèle
           final notif = NotificationModel.fromJson(data);
 
-          // Navigation via la clé globale
           _handleGlobalNavigation(notif);
         }
       },

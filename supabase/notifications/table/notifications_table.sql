@@ -11,8 +11,18 @@ create table public.notifications (
     created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
+create table public.notification_tokens (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid references public.profiles(id) on delete cascade not null,
+    token text not null unique,
+    device_id text,
+    platform text not null,
+    created_at timestamptz default now()
+);
+
 create index idx_notifications_notified_id on public.notifications(notified_id);
 create index idx_notifications_metadata_gin on public.notifications using gin (meta_data);
+create index idx_notification_tokens_user on public.notification_tokens(user_id);
 
 alter table public.notifications enable row level security;
 

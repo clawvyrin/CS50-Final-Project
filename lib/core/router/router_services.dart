@@ -11,6 +11,7 @@ import 'package:task_companion/features/conversations/screens/show_conversations
 import 'package:task_companion/features/home/screens/home.dart';
 import 'package:task_companion/features/authentication/screens/sign_up.dart';
 import 'package:task_companion/features/notifications/screens/notifications.dart';
+import 'package:task_companion/features/notifications/services/push_services.dart';
 import 'package:task_companion/features/projects/screens/project_dashboard.dart';
 import 'package:task_companion/features/search/screens/search.dart';
 import 'package:task_companion/features/settings/screens/settings.dart';
@@ -31,6 +32,7 @@ class AppRouter {
   AppRouter._internal();
 
   static final GoRouter router = GoRouter(
+    navigatorKey: PushNotificationService.navigatorKey,
     initialLocation: '/auth',
     routes: [
       GoRoute(

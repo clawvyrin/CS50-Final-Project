@@ -1,7 +1,4 @@
-// lib/providers/notification_provider.dart
-
 import 'dart:async';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_companion/features/notifications/models/notification_model.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';

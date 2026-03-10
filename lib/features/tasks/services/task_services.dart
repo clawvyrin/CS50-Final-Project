@@ -26,23 +26,31 @@ class TaskService {
             'title': title,
             'description': description,
             'due_date': dueDate.toIso8601String(),
-            'assigned_to': ?assigneeId,
+            'assigned_to': assigneeId,
           })
           .select()
           .single();
 
-      dependencies?.forEach((d) async {
-        await supabase.from("task_dependencies").insert({
-          'project_id': projectId,
-          'task_id': insertResponse['id'],
-          'depends_on_task_id': d,
-        });
-      });
+      final taskId = insertResponse['id'];
+
+      if (dependencies != null && dependencies.isNotEmpty) {
+        final rows = dependencies
+            .map(
+              (d) => {
+                'project_id': projectId,
+                'task_id': taskId,
+                'depends_on_task_id': d,
+              },
+            )
+            .toList();
+
+        await supabase.from("task_dependencies").insert(rows);
+      }
 
       final response = await supabase
           .from("task_data_view")
           .select()
-          .eq('id', insertResponse['id'])
+          .eq('id', taskId)
           .single();
 
       return LinkedTaskData.fromJson(response);

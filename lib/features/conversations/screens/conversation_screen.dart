@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:task_companion/core/utils/string_extensions.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/conversations/providers/chat_provider.dart';
 import 'package:task_companion/features/conversations/widgets/message_list.dart';
@@ -66,7 +67,10 @@ class ConversationScreen extends ConsumerWidget {
         return Scaffold(
           appBar: AppBar(
             title: ListTile(
-              title: Text(conversation.title),
+              title: Text(
+                conversation.title.capitalize(),
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               onTap: () {
                 if (conversation.task != null) {
                   context.pushNamed(

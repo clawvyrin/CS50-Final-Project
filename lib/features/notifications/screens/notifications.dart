@@ -56,7 +56,7 @@ class NotificationsPage extends ConsumerWidget {
     final data = notif.metaData;
     switch (notif.type) {
       case 'report_pending':
-        context.goNamed(
+        context.pushNamed(
           'task_details',
           pathParameters: {
             'projectId': data!['project_id'],
@@ -64,9 +64,18 @@ class NotificationsPage extends ConsumerWidget {
           },
         );
         break;
-      case 'new_message':
-        context.goNamed(
-          'task_conversation',
+      case 'collaboration_request':
+        context.pushNamed(
+          'task_details',
+          pathParameters: {
+            'projectId': data!['project_id'],
+            'taskId': data['task_id'],
+          },
+        );
+        break;
+      case 'task_assignment':
+        context.pushNamed(
+          'task_details',
           pathParameters: {
             'projectId': data!['project_id'],
             'taskId': data['task_id'],

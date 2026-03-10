@@ -13,12 +13,12 @@ final notificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
   if (userId == null) return Stream.value([]);
 
   return supabaseClient
-      .from('notifications')
+      .from('notification_details_view')
       .stream(primaryKey: ['id'])
       .order('created_at', ascending: false)
-      .map((data) {
-        return data.map((json) => NotificationModel.fromJson(json)).toList();
-      });
+      .map(
+        (data) => data.map((json) => NotificationModel.fromJson(json)).toList(),
+      );
 });
 
 final unreadNotificationsCountProvider = Provider<int>((ref) {
@@ -45,7 +45,7 @@ class NotificationActionsNotifier extends AsyncNotifier<void> {
     state = await AsyncValue.guard(() async {
       await supabaseClient
           .from('notifications')
-          .update({'is_read': true})
+          .update({'seen_at': DateTime.now()})
           .eq('id', id);
     });
   }

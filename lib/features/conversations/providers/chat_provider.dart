@@ -54,6 +54,7 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
   TaskChatNotifier({required this.conversationId});
 
   static const int _pageSize = 20;
+  int get pageSize => _pageSize;
   bool _hasMore = true;
   bool get hasMore => _hasMore;
   RealtimeChannel? _subscription;
@@ -127,7 +128,6 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
     }
 
     try {
-      // 2. Utilise await explicitement avant le .from
       final response = await ref
           .read(supabaseProvider)
           .from('message_view')
@@ -142,7 +142,7 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
   }
 
   Future<void> loadMore() async {
-    if (state.isLoading || !_hasMore) return;
+    if (state.isLoading || (!_hasMore && state.value!.isNotEmpty)) return;
 
     final currentMessages = state.value ?? [];
     state = const AsyncValue.loading();
@@ -155,6 +155,7 @@ class TaskChatNotifier extends AsyncNotifier<List<Message>> {
             conversationId: conversationId,
             limit: _pageSize,
           );
+      _hasMore = moreMessages.length == _pageSize;
       return [...currentMessages, ...moreMessages];
     });
   }

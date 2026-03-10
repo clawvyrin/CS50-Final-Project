@@ -55,7 +55,7 @@ class _MessageListState extends ConsumerState<MessageList> {
           reverse: true,
           itemCount: messages.length + (hasMore ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index == messages.length && hasMore) {
+            if (index == messages.length && hasMore && messages.length > 1) {
               return const Center(child: CircularProgressIndicator());
             }
             return _buildMessageTile(messages[index]);

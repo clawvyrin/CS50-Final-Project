@@ -7,7 +7,7 @@ SELECT
         'id', p.id,
         'display_name', p.display_name,
         'avatar_url', p.avatar_url
-    ) AS notitifer,
+    ) AS notifier,
 
     n.notified_id,
     n.status,

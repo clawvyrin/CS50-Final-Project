@@ -27,7 +27,8 @@ SELECT
     dtr.end_time,
     dtr.duration_minutes,
     dtr.is_signed,
-    dtr.reported_at
+    dtr.reported_at,
+    dtr.task_id
 
 FROM daily_tasks_reports dtr
 JOIN tasks t ON t.id = dtr.task_id

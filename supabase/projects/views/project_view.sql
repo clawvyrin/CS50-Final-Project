@@ -66,7 +66,12 @@ SELECT
     ) AS resources,
 
     p.start_date,
-    p.end_date
+    p.end_date,
+    EXISTS (
+        SELECT 1 FROM projects pr 
+        WHERE pr.id = p.id AND pr.owner_id = auth.uid()
+    ) AS is_owner
+    
 
 FROM projects p
 JOIN profiles o ON o.id = p.owner_id;

@@ -9,7 +9,8 @@ SELECT
         'status', p.status,
         'start_date', p.start_date,
         'end_date', p.end_date
-    ) AS project
+    ) AS project,
+    t.progression
 
 FROM tasks t
 JOIN projects p ON p.id = t.project_id;
@@ -76,7 +77,7 @@ SELECT
         (
             SELECT jsonb_agg(dtrv)
             FROM daily_task_report_view dtrv
-            WHERE (dtrv.task->>'id')::uuid = t.id
+            WHERE dtrv.task_id = t.id
         ),
         '[]'::jsonb
     ) AS reports,
@@ -86,7 +87,7 @@ SELECT
         (
             SELECT jsonb_agg(td)
             FROM task_dependency_view td
-            WHERE (td.task->>'id')::uuid = t.id
+            WHERE td.task_id = t.id
         ),
         '[]'::jsonb
     ) AS dependencies,
@@ -99,12 +100,27 @@ SELECT
         SELECT COUNT(*)
         FROM daily_task_report_view dtrv
         WHERE is_signed = false
-        AND (dtrv.task->>'id')::uuid = t.id
-    ), 0) AS pending_reports_count
+        AND dtrv.task_id = t.id
+    ), 0) AS pending_reports_count,
+
+    t.progression,
+    (t.assigned_to = auth.uid()) AS is_assignee,
+    
+    -- Est-ce que je suis le propriétaire du projet ?
+    EXISTS (
+        SELECT 1 FROM projects p 
+        WHERE p.id = t.project_id AND p.owner_id = auth.uid()
+    ) AS is_owner,
+
+    -- Droit de modification global (Proprio ou Assigné)
+    (
+        t.assigned_to = auth.uid() 
+        OR EXISTS (SELECT 1 FROM projects p WHERE p.id = t.project_id AND p.owner_id = auth.uid())
+    ) AS can_edit_progress
 
 FROM tasks t
 JOIN projects p ON p.id = t.project_id
-JOIN profiles a ON a.id = t.assigned_to;
+LEFT JOIN profiles a ON a.id = t.assigned_to;
 
 
 CREATE INDEX tasks_project_idx

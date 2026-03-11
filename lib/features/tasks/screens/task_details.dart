@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:task_companion/core/utils/string_extensions.dart';
+import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 import 'package:task_companion/features/projects/providers/project_providers.dart';
 import 'package:task_companion/features/tasks/models/task_model.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
+import 'package:task_companion/features/tasks/widgets/alert%20dialogs/add_daily_task_report_dialog.dart';
 
 class TaskDetails extends ConsumerStatefulWidget {
   final String taskId;
@@ -46,10 +49,41 @@ class _TaskDetailsState extends ConsumerState<TaskDetails>
         }
 
         return Scaffold(
+          floatingActionButton: _buildContextualFAB(task),
           body: NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
                 SliverAppBar(
+                  actions: [
+                    if ((task.isAssignee || task.isOwner) &&
+                        task.conversationId != null)
+                      IconButton(
+                        onPressed: () {
+                          if (!task.isAssignee || !task.isOwner) return;
+
+                          context.goNamed(
+                            "conversation",
+                            pathParameters: {
+                              'conversationId': task.conversationId!,
+                            },
+                          );
+                        },
+                        icon: Icon(Icons.message),
+                      ),
+                    IconButton(
+                      onPressed: () {
+                        if (!task.isAssignee || !task.isOwner) return;
+
+                        context.goNamed(
+                          "conversation",
+                          pathParameters: {
+                            'conversationId': task.conversationId!,
+                          },
+                        );
+                      },
+                      icon: Icon(Icons.delete),
+                    ),
+                  ],
                   expandedHeight: 200.0,
                   pinned: true,
                   title: Text(
@@ -98,7 +132,10 @@ class _TaskDetailsState extends ConsumerState<TaskDetails>
             children: [
               Chip(
                 label: Text(task.assignee.displayName),
-                avatar: const Icon(Icons.person, size: 16),
+                avatar: ProfilePicture(
+                  avatarUrl: task.assignee.avatarUrl!,
+                  radius: 12,
+                ),
               ),
               Text(
                 "Shift: ${task.shiftStartTime} - ${task.shiftEndTime}",
@@ -107,12 +144,24 @@ class _TaskDetailsState extends ConsumerState<TaskDetails>
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            "Progression",
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          Text.rich(
+            TextSpan(
+              text: "Progression : ",
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+              children: [
+                TextSpan(
+                  text: "${task.progression}% achieved",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 4),
-          const LinearProgressIndicator(value: 0.4, minHeight: 8),
+          const SizedBox(height: 15),
+          LinearProgressIndicator(value: task.progression / 100),
         ],
       ),
     );
@@ -163,10 +212,46 @@ class _TaskDetailsState extends ConsumerState<TaskDetails>
     return ListView.builder(
       itemCount: task.reports?.length ?? 0,
       itemBuilder: (context, index) => ListTile(
+        onTap: () async {
+          await showDialog(
+            context: context,
+            builder: (context) => AddDailyTaskReportDialog(task: task),
+          );
+        },
         leading: const Icon(Icons.history),
         title: Text("Report from ${task.reports![index].reportedAt}"),
         subtitle: Text(task.reports![index].dailySummary ?? ""),
       ),
     );
+  }
+
+  Widget? _buildContextualFAB(Task task) {
+    // if (task.isOwner && task.progression < 100) {
+    //   return FloatingActionButton.extended(
+    //     onPressed: () => showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         // return DailyReportDetailsDialog(report: report);
+    //         return Container();
+    //       },
+    //     ),
+    //     label: const Text("Certifier"),
+    //     icon: const Icon(Icons.verified),
+    //     backgroundColor: Colors.green,
+    //   );
+    // }
+
+    if (task.isAssignee) {
+      return FloatingActionButton.extended(
+        onPressed: () => showDialog(
+          context: context,
+          builder: (context) => AddDailyTaskReportDialog(task: task),
+        ),
+        label: const Text("Daily Report"),
+        icon: const Icon(Icons.add_task),
+      );
+    }
+
+    return null;
   }
 }

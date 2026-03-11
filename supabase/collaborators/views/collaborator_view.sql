@@ -1,3 +1,17 @@
+drop view if exists user_search_view;
+CREATE OR REPLACE VIEW user_search_view AS
+SELECT
+    p.id,
+    p.display_name,
+    p.avatar_url,
+    MAX(CASE WHEN c.status = 'accepted' THEN true ELSE false END) AS is_collaborator,
+    MAX(CASE WHEN c.status != 'accepted' AND c.requested_by = p.id THEN true ELSE false END) AS current_user_requested,
+    MAX(CASE WHEN c.status != 'accepted' AND c.requested_to = p.id THEN true ELSE false END) AS other_user_requested
+FROM profiles p
+LEFT JOIN collaborators c
+  ON c.requested_by = p.id OR c.requested_to = p.id
+GROUP BY p.id, p.display_name, p.avatar_url;
+
 CREATE OR REPLACE VIEW collaborator_view AS
 SELECT
     jsonb_build_object(

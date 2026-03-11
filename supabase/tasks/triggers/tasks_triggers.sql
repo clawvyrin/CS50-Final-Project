@@ -31,4 +31,5 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 create trigger on_task_created
     after insert on public.tasks
-    for each row execute function public.add_task_assignee_notification();
+    for each row execute function public.add_task_assignee_notification()
+    where task.assigned_to is not auth.uid();

@@ -8,50 +8,15 @@ class TaskService {
   final supabase = Supabase.instance.client;
 
   Future<LinkedTaskData?> createNewTask({
-    required String projectId,
-    required String title,
-    String? description,
-    required DateTime dueDate,
-    List<String>? workDays,
-    String? assigneeId,
-    List<String>? dependencies,
+    Map<String, dynamic>? taskData,
   }) async {
     try {
-      appLogger.i("Attempt to create task for project");
+      if (taskData == null) return null;
 
-      final insertResponse = await supabase
-          .from("tasks")
-          .insert({
-            'project_id': projectId,
-            'title': title,
-            'description': description,
-            'due_date': dueDate.toIso8601String(),
-            'assigned_to': assigneeId,
-          })
-          .select()
-          .single();
-
-      final taskId = insertResponse['id'];
-
-      if (dependencies != null && dependencies.isNotEmpty) {
-        final rows = dependencies
-            .map(
-              (d) => {
-                'project_id': projectId,
-                'task_id': taskId,
-                'depends_on_task_id': d,
-              },
-            )
-            .toList();
-
-        await supabase.from("task_dependencies").insert(rows);
-      }
-
-      final response = await supabase
-          .from("task_data_view")
-          .select()
-          .eq('id', taskId)
-          .single();
+      final response = await supabase.rpc(
+        "create_task_with_details",
+        params: taskData,
+      );
 
       return LinkedTaskData.fromJson(response);
     } catch (e, st) {
@@ -73,10 +38,10 @@ class TaskService {
       appLogger.i("Attempt to get task details");
 
       final response = await supabase
-          .rpc(
-            'get_task_details',
-            params: {'p_task_id': taskId, 'p_id': projectId},
-          )
+          .from("task_view")
+          .select()
+          .eq('id', taskId)
+          .eq('project_id', projectId)
           .maybeSingle();
 
       return Task.fromJson(response!);
@@ -106,6 +71,19 @@ class TaskService {
         stackTrace: st,
         time: DateTime.now().toUtc(),
       );
+    }
+  }
+
+  Future<void> updateProgress(String taskId, double progress) async {
+    try {
+      await supabase
+          .from('tasks')
+          .update({'progression': progress})
+          .eq('id', taskId);
+
+      appLogger.i("Task progression updated : $progress%");
+    } catch (e) {
+      appLogger.e("Erro updating progression", error: e);
     }
   }
 }

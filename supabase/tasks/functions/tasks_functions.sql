@@ -1,141 +1,156 @@
 ------------ CREATE_TASK
-create or replace function public.create_task(
-    p_project_id uuid,
-    p_title text,
-    p_description text,
-    p_due_date timestamptz,
-    p_assigned_to uuid default null,
-    p_dependencies uuid[] default '{}'::uuid[]
+create or replace function public.create_task_with_details(
+    project_id uuid,
+    title text,
+    description text,
+    start_date timestamptz,
+    due_date timestamptz,
+    assigned_to uuid,
+    dependencies jsonb,
+    selected_activities jsonb
 )
-returns jsonb
+returns public.task_view
 language plpgsql
 security definer
 set search_path = public
 as $$
 declare
     new_task_id uuid;
-    result jsonb;
+
+    dependency_record jsonb;
+    activity_record jsonb;
+    resource_record jsonb;
+
+    new_activity_id uuid;
+    new_resource_id uuid;
+
 begin
 
-    if auth.uid() is null then
-        raise exception 'Not authenticated';
-    end if;
+--------------------------------------------------
+-- 1️⃣ Create Task
+--------------------------------------------------
 
-    if not exists (
-        select 1
-        from public.projects p
-        where p.id = p_project_id
-        and (
-            p.owner_id = auth.uid()
-            or exists (
-                select 1
-                from public.project_members pm
-                where pm.project_id = p_project_id
-                and pm.user_id = auth.uid()
-            )
-        )
-    ) then
-        raise exception 'Access denied';
-    end if;
+insert into tasks (
+    project_id,
+    title,
+    description,
+    start_date,
+    due_date,
+    assigned_to
+)
+values (
+    project_id,
+    title,
+    description,
+    start_date,
+    due_date,
+    assigned_to
+)
+returning id into new_task_id;
 
-    insert into public.tasks (
-        project_id,
-        title,
-        description,
-        due_date,
-        assigned_to,
-        status
+--------------------------------------------------
+-- 2️⃣ Insert Dependencies
+--------------------------------------------------
+
+for dependency_record in
+    select * from jsonb_array_elements(dependencies)
+loop
+
+    insert into task_dependencies (
+        task_id,
+        dependency_task_id
     )
     values (
-        p_project_id,
-        p_title,
-        p_description,
-        p_due_date,
-        p_assigned_to,
-        'to_do'
+        new_task_id,
+        (dependency_record ->> 'id')::uuid
+    );
+
+end loop;
+
+--------------------------------------------------
+-- 3️⃣ Create Activities
+--------------------------------------------------
+
+for activity_record in
+    select * from jsonb_array_elements(selected_activities)
+loop
+
+    insert into activities (
+        task_id,
+        description
     )
-    returning id into new_task_id;
+    values (
+        new_task_id,
+        activity_record ->> 'description'
+    )
+    returning id into new_activity_id;
 
-    insert into public.add_task_dependencies (project_id, task_id, depends_on_task_id)
-    select p_project_id, new_task_id, dep_id
-    from unnest(p_dependencies) dep_id;
+--------------------------------------------------
+-- 4️⃣ Create Resources for this Activity
+--------------------------------------------------
 
-    select jsonb_build_object(
-        'id', t.id,
-        'project_id', t.project_id,
-        'title', t.title,
-        'description', t.description,
-        'status', t.status,
-        'assigned_to', t.assigned_to,
-        'assignee_display_name', p.display_name,
-        'assignee_avatar_url', p.avatar_url,
-        'due_date', t.due_date,
-        'work_days', t.work_days,
-        'shift_start_time', t.shift_start_time,
-        'shift_end_time', t.shift_end_time,
-        'activities', '[]'::jsonb,
-        'reports', '[]'::jsonb,
-        'affected_resources', '[]'::jsonb,
-        'dependencies', (
-            select coalesce(jsonb_agg(d), '[]'::jsonb)
-            from public.task_dependencies d
-            where d.task_id = t.id
+    for resource_record in
+        select * from jsonb_array_elements(activity_record -> 'resources')
+    loop
+
+        insert into resources (
+            project_id,
+            name,
+            type,
+            amount
         )
-    )
-    into result
-    from public.tasks t
-    left join public.profiles p
-        on p.id = t.assigned_to
-    where t.id = new_task_id;
+        values (
+            project_id,
+            resource_record ->> 'name',
+            resource_record ->> 'type',
+            (resource_record ->> 'amount')::numeric
+        )
+        returning id into new_resource_id;
 
-    return result;
+        insert into activity_resources (
+            activity_id,
+            resource_id
+        )
+        values (
+            new_activity_id,
+            new_resource_id
+        );
+
+    end loop;
+
+end loop;
+
+return (
+        select t
+        from task_view t
+        where t.id = new_task_id
+        limit 1
+    );
 
 end;
 $$;
 
------------- GET_TASK_DETAILS
-create or replace function public.get_task_details(p_task_id uuid)
-returns jsonb
-language plpgsql security definer
-as $$
-declare
-    result jsonb;
-begin
-    select jsonb_build_object(
-        'id', t.id,
-        'project_id', t.project_id,
-        'title', t.title,
-        'description', t.description,
-        'status', t.status,
-        'assigned_to', t.assigned_to,
-        'assignee_display_name', (select display_name from public.profiles where id = t.assigned_to),
-        'assignee_avatar_url', (select avatar_url from public.profiles where id = t.assigned_to),
-        'due_date', t.due_date,
-        'shift_start_time', t.shift_start_time,
-        'shift_end_time', t.shift_end_time,
-        -- Agrégation des activités de la tâche
-        'activities', (
-            select coalesce(jsonb_agg(a), '[]'::jsonb) 
-            from public.activities a where a.task_id = t.id
-        ),
-        -- Agrégation des ressources allouées à cette tâche
-        'affected_resources', (
-            select coalesce(jsonb_agg(r), '[]'::jsonb) 
-            from public.resources r where r.task_id = t.id
-        ),
-        -- Agrégation des rapports journaliers
-        'reports', (
-            select coalesce(jsonb_agg(rep), '[]'::jsonb) 
-            from public.daily_task_reports rep where rep.task_id = t.id
-        ),
-        -- Agrégation des dépendances
-        'dependencies', (
-            select coalesce(jsonb_agg(d), '[]'::jsonb) 
-            from public.task_dependencies d where d.task_id = t.id
-        )
-    ) into result
-    from public.tasks t
-    where t.id = p_task_id;
 
-    return result;
-end; $$;
+CREATE OR REPLACE FUNCTION check_task_immutability(
+    task_id UUID, 
+    new_title TEXT, 
+    new_project_id UUID
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    old_title TEXT;
+    old_project_id UUID;
+BEGIN
+    SELECT title, project_id
+    INTO old_title, old_project_id
+    FROM public.tasks
+    WHERE id = task_id;
+
+    -- If task not found, return false
+    IF old_title IS NULL OR old_project_id IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    RETURN (new_title = old_title AND new_project_id = old_project_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;

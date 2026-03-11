@@ -22,7 +22,7 @@ final notificationsProvider = StreamProvider<List<NotificationModel>>((ref) {
 final unreadNotificationsCountProvider = Provider<int>((ref) {
   final notificationsAsync = ref.watch(notificationsProvider);
   return notificationsAsync.maybeWhen(
-    data: (list) => list.where((n) => n.seenAt != null).length,
+    data: (list) => list.where((n) => n.seenAt == null).length,
     orElse: () => 0,
   );
 });

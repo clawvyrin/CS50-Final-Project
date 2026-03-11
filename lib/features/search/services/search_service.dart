@@ -1,24 +1,25 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/log/logger.dart';
-import 'package:task_companion/features/profiles/models/linked_profile_model.dart';
+import 'package:task_companion/features/profiles/models/profile_model.dart';
 import 'package:task_companion/features/projects/models/linked_project_model.dart';
 import 'package:task_companion/features/tasks/models/linked_task_model.dart';
 
 class SearchService {
-  Future<List<LinkedProfileData>> searchUsers(
+  Future<List<Profile>> searchUsers(
     String query,
     SupabaseClient supabaseClient,
   ) async {
     try {
       appLogger.i("Looking for users");
 
-      final response = await supabaseClient.rpc(
-        'search_collaborators',
-        params: {'p_query': query},
-      );
+      final response = await supabaseClient
+          .from("profiles_with_relation")
+          .select()
+          .like("display_name", '%$query%');
+
       return (response as List)
-          .map((json) => LinkedProfileData.fromJson(json))
+          .map((json) => Profile.fromJson(json))
           .toList();
     } catch (e, st) {
       appLogger.e(
@@ -38,10 +39,10 @@ class SearchService {
     try {
       appLogger.i("Looking for projects");
 
-      final response = await supabaseClient.rpc(
-        'search_my_projects',
-        params: {'p_query': query},
-      );
+      final response = await supabaseClient
+          .from("projects")
+          .select()
+          .like("name", '%$query%');
 
       return (response as List)
           .map((json) => LinkedProjectData.fromJson(json))
@@ -64,10 +65,10 @@ class SearchService {
     try {
       appLogger.i("Looking for task");
 
-      final response = await supabaseClient.rpc(
-        'search_my_tasks',
-        params: {'p_query': query},
-      );
+      final response = await supabaseClient
+          .from("task_data_view")
+          .select()
+          .like("title", '%$query%');
 
       return (response as List)
           .map((json) => LinkedTaskData.fromJson(json))

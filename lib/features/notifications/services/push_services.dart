@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/log/logger.dart';
 import 'package:task_companion/core/utils/string_extensions.dart';
-import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/home/models/enums.dart';
 import 'package:task_companion/features/notifications/models/notification_model.dart';
 import 'package:task_companion/features/notifications/providers/notifications_provider.dart';
@@ -42,13 +41,13 @@ class PushNotificationService {
 
   final _localNotifs = FlutterLocalNotificationsPlugin();
 
-  Future<void> initialize() async {
+  Future<void> initialize(String? id) async {
     NotificationSettings settings = await _fcm.requestPermission();
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       String? token = await _fcm.getToken();
       if (token != null) {
-        _saveTokenToDatabase(token);
+        await _saveTokenToDatabase(token, id);
       }
     }
 
@@ -62,7 +61,6 @@ class PushNotificationService {
       onDidReceiveNotificationResponse: (NotificationResponse response) async {
         if (response.payload != null) {
           final data = jsonDecode(response.payload!);
-          // On transforme le payload en modèle
           final notif = NotificationModel.fromJson(data);
 
           _handleGlobalNavigation(notif);
@@ -77,11 +75,14 @@ class PushNotificationService {
         ?.createNotificationChannel(androidChannel);
 
     FirebaseMessaging.onBackgroundMessage(handleBackGroundMessage);
-    _fcm.onTokenRefresh.listen(_saveTokenToDatabase);
+    _fcm.onTokenRefresh.listen((t) async {
+      await _saveTokenToDatabase(t, id);
+    });
   }
 
   void _handleGlobalNavigation(NotificationModel notif) {
     final data = notif.metaData;
+
     final router = GoRouter.of(navigatorKey.currentContext!);
 
     if (notif.type == 'task_assignment' || notif.type == 'report_pending') {
@@ -99,7 +100,8 @@ class PushNotificationService {
 
   Future onUserLoggedIn(WidgetRef ref) async {
     try {
-      final context = navigatorKey.currentContext!;
+      final context = navigatorKey.currentContext;
+      if (context == null) return;
 
       await _fcm.getInitialMessage().then((message) async {
         if (context.mounted && message != null) {
@@ -132,8 +134,9 @@ class PushNotificationService {
     final notification = message.notification;
     if (notification == null) return;
 
+    final notifId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     await _localNotifs.show(
-      id: message.data["id"],
+      id: notifId,
       title: notification.title,
       body: notification.body,
       notificationDetails: NotificationDetails(
@@ -192,12 +195,11 @@ class PushNotificationService {
     }
   }
 
-  void _saveTokenToDatabase(String token) async {
-    final userId = AuthServices.id;
-    if (userId == null) return;
+  Future<void> _saveTokenToDatabase(String token, String? id) async {
+    if (id == null) return;
 
     await _supabaseClient.from("notification_tokens").upsert({
-      "user_id": userId,
+      "user_id": id,
       "token": token,
       "platform": Platform.isIOS ? "ios" : "android",
     }, onConflict: 'token');

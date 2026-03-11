@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_error.dart';
 import 'package:task_companion/features/home/widgets/helpers/on_loading.dart';
+import 'package:task_companion/features/profiles/widgets/profile_card.dart';
+import 'package:task_companion/features/profiles/widgets/profile_picture.dart';
 import 'package:task_companion/features/search/providers/search_provider.dart';
 
 class UsersSearchResultsList extends ConsumerWidget {
@@ -23,11 +25,13 @@ class UsersSearchResultsList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final user = users[index];
             return ListTile(
-              leading: CircleAvatar(child: Text(user.displayName)),
+              leading: ProfilePicture(avatarUrl: user.avatarUrl, radius: 20),
               title: Text(user.displayName),
-              onTap: () => context.goNamed(
-                'direct_chat',
-                pathParameters: {'userId': user.id},
+              onTap: () => showDialog(
+                context: context,
+                builder: (context) {
+                  return ProfileCard(user: user);
+                },
               ),
             );
           },
@@ -59,8 +63,8 @@ class ProjectsSearchResultsList extends ConsumerWidget {
             return ListTile(
               leading: const Icon(Icons.folder_open, color: Colors.blue),
               title: Text(project.name),
-              onTap: () => context.goNamed(
-                'project_dashboard',
+              onTap: () => context.pushNamed(
+                'project',
                 pathParameters: {'projectId': project.id},
               ),
             );
@@ -91,7 +95,7 @@ class TasksSearchResultsList extends ConsumerWidget {
           itemBuilder: (context, index) {
             final task = tasks[index];
             return ListTile(
-              leading: const Icon(Icons.folder_open, color: Colors.blue),
+              leading: const Icon(Icons.task, color: Colors.blue),
               title: Text(task.title),
               subtitle: Text(task.project.name),
               onTap: () => context.goNamed(

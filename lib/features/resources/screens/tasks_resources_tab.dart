@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:task_companion/features/tasks/models/resource_model.dart';
+import 'package:task_companion/features/resources/models/resource_model.dart';
 
 class ResourcesTab extends StatelessWidget {
   final List<Resource> resources;

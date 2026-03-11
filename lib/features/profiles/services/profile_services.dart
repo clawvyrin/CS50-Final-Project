@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:task_companion/core/log/logger.dart';
+import 'package:task_companion/features/authentication/services/auth_services.dart';
+import 'package:task_companion/features/home/models/enums.dart';
 import 'package:task_companion/features/profiles/models/profile_model.dart';
 
 class ProfileServices {
@@ -9,7 +11,7 @@ class ProfileServices {
   Future getProfileData(String id) async {
     try {
       final result = await supabase
-          .from('profiles')
+          .from('profiles_with_relation')
           .select()
           .eq("id", id)
           .maybeSingle();
@@ -74,6 +76,60 @@ class ProfileServices {
         error: e,
         stackTrace: st,
         time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> handleCollaboratorRequest(
+    String collaboratorId,
+    bool isCurrentUserRequest,
+    RequestStatus status,
+  ) async {
+    try {
+      final result = await supabase
+          .from('collaborators')
+          .update({"status": status.name})
+          .eq(
+            "requested_by",
+            isCurrentUserRequest ? AuthServices.id! : collaboratorId,
+          )
+          .eq(
+            "requested_to",
+            isCurrentUserRequest ? collaboratorId : AuthServices.id!,
+          )
+          .select()
+          .maybeSingle();
+
+      return result != null;
+    } catch (e, st) {
+      appLogger.e(
+        "Email handling request status Error",
+        error: e,
+        stackTrace: st,
+        time: DateTime.now().toUtc(),
+      );
+      return false;
+    }
+  }
+
+  Future<bool> createCollaboratorRequest(String targetUserId) async {
+    try {
+      final currentUserId = AuthServices.id;
+      if (currentUserId == null) return false;
+
+      await supabase.from('collaborators').insert({
+        "requested_by": currentUserId,
+        "requested_to": targetUserId,
+        "status": "pending",
+      });
+
+      return true;
+    } catch (e, st) {
+      appLogger.e(
+        "Error sending collaborator request",
+        error: e,
+        stackTrace: st,
       );
       return false;
     }

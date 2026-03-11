@@ -25,7 +25,8 @@ SELECT
         )
     ) AS dependency,
     
-    td.created_at
+    td.created_at,
+    td.task_id
 
 FROM task_dependencies td
 JOIN tasks t ON t.id = td.task_id

@@ -1,6 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart'
-    show FutureProvider, Notifier, NotifierProvider;
-import 'package:task_companion/features/profiles/models/linked_profile_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:task_companion/features/profiles/models/profile_model.dart';
 import 'package:task_companion/features/projects/models/linked_project_model.dart';
 import 'package:task_companion/features/authentication/services/auth_services.dart';
 import 'package:task_companion/features/search/services/search_service.dart';
@@ -17,7 +16,7 @@ class SearchQueryNotifier extends Notifier<String> {
   void update(String value) => state = value;
 }
 
-final userSearchProvider = FutureProvider<List<LinkedProfileData>>((ref) async {
+final userSearchProvider = FutureProvider<List<Profile>>((ref) async {
   final query = ref.watch(searchQueryProvider);
   if (query.length < 2) return [];
 

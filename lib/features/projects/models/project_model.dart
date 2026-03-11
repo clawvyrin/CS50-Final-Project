@@ -1,10 +1,10 @@
-import 'package:task_companion/features/tasks/models/activity_model.dart';
+import 'package:task_companion/features/activity/models/activity_model.dart';
 import 'package:task_companion/features/home/models/enums.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:task_companion/features/profiles/models/linked_profile_model.dart';
 import 'package:task_companion/features/projects/models/milestone_model.dart';
 import 'package:task_companion/features/projects/models/project_member_model.dart';
-import 'package:task_companion/features/tasks/models/resource_model.dart';
+import 'package:task_companion/features/resources/models/resource_model.dart';
 import 'package:task_companion/features/tasks/models/task_model.dart';
 import 'package:task_companion/features/projects/models/timeline_event_model.dart';
 
@@ -31,6 +31,7 @@ abstract class Project with _$Project {
     @Default([]) List<Activity>? activities,
     @JsonKey(name: 'start_date') DateTime? startDate,
     @JsonKey(name: 'end_date') DateTime? endDate,
+    @JsonKey(name: 'is_owner') required bool isOwner,
   }) = _Project;
 
   factory Project.fromJson(Map<String, dynamic> json) =>

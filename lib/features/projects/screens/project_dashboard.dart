@@ -8,6 +8,7 @@ import 'package:task_companion/features/projects/widgets/dynamic_floating_action
 import 'package:task_companion/features/projects/widgets/gantt/gantt_chart.dart';
 import 'package:task_companion/features/projects/widgets/milestone_row.dart';
 import 'package:task_companion/features/projects/widgets/tabs/members_tab.dart';
+import 'package:task_companion/features/resources/screens/project_resources_tab.dart';
 import 'package:task_companion/features/projects/widgets/tabs/tasks_tabs.dart';
 import 'package:task_companion/features/projects/widgets/tabs/timeline_tab.dart';
 
@@ -26,7 +27,7 @@ class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         ref.read(currentTabProvider.notifier).state = _tabController.index;
@@ -86,8 +87,9 @@ class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
                       bottom: TabBar(
                         controller: _tabController,
                         tabs: [
-                          Tab(text: 'Tasks', icon: Icon(Icons.list)),
                           Tab(text: 'Timeline', icon: Icon(Icons.timeline)),
+                          Tab(text: 'Tasks', icon: Icon(Icons.list)),
+                          Tab(text: 'Resources', icon: Icon(Icons.dataset)),
                           Tab(text: 'Team', icon: Icon(Icons.group)),
                         ],
                       ),
@@ -97,8 +99,12 @@ class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
                 body: TabBarView(
                   controller: _tabController,
                   children: [
-                    TasksTab(tasks: project.tasks ?? []),
                     TimelineTab(events: project.timeline ?? []),
+                    TasksTab(tasks: project.tasks ?? []),
+                    ResourcesTab(
+                      resources: project.resources ?? [],
+                      projectId: project.id,
+                    ),
                     MembersTab(
                       projectId: project.id,
                       isOwner: AuthServices.id == project.owner.id,
@@ -106,10 +112,12 @@ class _ProjectDashboardState extends ConsumerState<ProjectDashboard>
                   ],
                 ),
               ),
-              floatingActionButton: ProjectFloatingActionButton(
-                project: project,
-                tabController: _tabController,
-              ),
+              floatingActionButton: project.isOwner
+                  ? ProjectFloatingActionButton(
+                      project: project,
+                      tabController: _tabController,
+                    )
+                  : SizedBox.shrink(),
             ),
     );
   }

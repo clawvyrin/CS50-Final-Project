@@ -32,18 +32,27 @@ class ProjectMembersNotifier extends AsyncNotifier<List<ProjectMember>> {
         .toList();
   }
 
-  Future<void> addMember(String userId, String role) async {
+  Future<List<ProjectMember>?> addMembers(List<String> userIds) async {
     final supabase = ref.read(supabaseProvider);
     state = const AsyncValue.loading();
 
     state = await AsyncValue.guard(() async {
-      await supabase.from('project_members').insert({
-        'project_id': projectId,
-        'user_id': userId,
-        'role': role,
-      });
-      return _fetchMembers();
+      final List<Map<String, dynamic>> toInsert = userIds
+          .map(
+            (id) => {
+              'project_id': projectId,
+              'user_id': id,
+              'role': 'collaborator',
+            },
+          )
+          .toList();
+
+      await supabase.from('project_members').insert(toInsert);
+
+      return await _fetchMembers();
     });
+
+    return state.value;
   }
 
   Future<void> removeMember(String userId) async {

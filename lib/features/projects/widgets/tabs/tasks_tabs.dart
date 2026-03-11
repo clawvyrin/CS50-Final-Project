@@ -16,9 +16,9 @@ class TasksTab extends StatelessWidget {
         final t = tasks[index];
         return ExpansionTile(
           trailing: IconButton(
-            onPressed: () => context.pushNamed(
-              'conversation',
-              pathParameters: {'conversationId': t.conversationId},
+            onPressed: () => context.goNamed(
+              'task_details',
+              pathParameters: {'taskId': t.id, "projectId": t.project.id},
             ),
             icon: Icon(Icons.open_in_new),
           ),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:task_companion/features/tasks/models/activity_model.dart';
+import 'package:task_companion/features/activity/models/activity_model.dart';
 import 'package:task_companion/features/tasks/models/task_report_model.dart';
 import 'package:task_companion/features/tasks/providers/tasks_provider.dart';
 

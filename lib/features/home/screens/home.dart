@@ -57,22 +57,22 @@ class _HomeState extends ConsumerState<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return ref
-        .watch(profileProvider(AuthServices.id!))
-        .when(
-          data: (Profile user) {
-            return Scaffold(
-              appBar: _appBar(user),
-              drawer: HomeDrawerMenu(user: user),
-              body: ProjectList(),
-              floatingActionButton: FloatingActionButton(
-                onPressed: () => _createNewProject(context),
-                child: const Icon(Icons.add),
-              ),
-            );
-          },
-          error: (e, _) => OnError(e: e),
-          loading: () => const OnLoading(),
+    final profileProviderAsync = ref.watch(profileProvider(AuthServices.id!));
+
+    return profileProviderAsync.when(
+      data: (Profile user) {
+        return Scaffold(
+          appBar: _appBar(user),
+          drawer: HomeDrawerMenu(user: user),
+          body: ProjectList(),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () => _createNewProject(context),
+            child: const Icon(Icons.add),
+          ),
         );
+      },
+      error: (e, _) => OnError(e: e),
+      loading: () => const OnLoading(),
+    );
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:task_companion/features/tasks/models/activity_model.dart';
+import 'package:task_companion/features/activity/models/activity_model.dart';
 
 class ActivitiesTab extends StatelessWidget {
   final List<Activity> activities;

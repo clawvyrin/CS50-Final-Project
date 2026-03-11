@@ -10,16 +10,15 @@ final taskDetailsProvider = FutureProvider.family<Task?, Map<String, String>>((
   ref,
   data,
 ) async {
-  final supabase = ref.read(supabaseProvider);
+  if (!(data.containsKey("projectId") && data.containsKey("taskId"))) {
+    return null;
+  }
 
-  final response = await supabase
-      .from("task_view")
-      .select()
-      .eq('id', data["taskId"]!)
-      .eq('project_id', data["projectId"]!)
-      .maybeSingle();
+  final response = await ref
+      .read(taskServiceProvider)
+      .getTaskDetails(projectId: data["projectId"]!, taskId: data["taskId"]!);
 
-  return Task.fromJson(response!);
+  return response;
 });
 
 final taskActionsProvider = AsyncNotifierProvider<TaskActionsNotifier, void>(
@@ -34,29 +33,13 @@ class TaskActionsNotifier extends AsyncNotifier<void> {
     return null;
   }
 
-  Future<void> createTask({
-    required String projectId,
-    required String title,
-    String? description,
-    required DateTime dueDate,
-    required String? assignedTo,
-    List<String>? dependencies,
-  }) async {
+  Future<void> createTask({Map<String, dynamic>? taskData}) async {
     state = const AsyncLoading();
 
     state = await AsyncValue.guard(() async {
-      await ref
-          .read(taskServiceProvider)
-          .createNewTask(
-            projectId: projectId,
-            title: title,
-            description: description,
-            dueDate: dueDate,
-            assigneeId: assignedTo,
-            dependencies: dependencies,
-          );
+      await ref.read(taskServiceProvider).createNewTask(taskData: taskData);
 
-      ref.invalidate(projectDetailsProvider(projectId));
+      ref.invalidate(projectDetailsProvider(taskData!["projectId"]));
     });
   }
 
@@ -73,5 +56,17 @@ class TaskActionsNotifier extends AsyncNotifier<void> {
 
     ref.invalidate(taskDetailsProvider);
     ref.invalidate(messagesProvider);
+  }
+
+  Future<void> submitDailyReport({required Map<String, dynamic> report}) async {
+    final supabase = ref.read(supabaseProvider);
+
+    final response = await supabase
+        .from("daily_tasks_reports")
+        .insert(report)
+        .select()
+        .maybeSingle();
+
+    if (response != null) ref.invalidate(taskDetailsProvider);
   }
 }

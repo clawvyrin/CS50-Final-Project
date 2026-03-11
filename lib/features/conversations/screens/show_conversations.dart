@@ -21,16 +21,29 @@ class ShowConversations extends ConsumerWidget {
                 itemCount: list.length,
                 itemBuilder: (context, index) {
                   final conversation = list[index];
+                  bool isSeen = conversation.lastMessage?.seenAt != null;
                   return ListTile(
-                    title: Text(conversation.title),
+                    // leading: ProfilePicture(
+                    //   avatarUrl: conversation.participants
+                    //       .where((p) => p.user.id != AuthServices.id!)
+                    //       .first
+                    //       .user
+                    //       .avatarUrl!,
+                    // ),
+                    title: Text(
+                      conversation.title,
+                      style: TextStyle(
+                        fontWeight: isSeen
+                            ? FontWeight.normal
+                            : FontWeight.bold,
+                      ),
+                    ),
                     subtitle: Text(
                       conversation.lastMessage?.sentAt.toString() ?? '',
                     ),
-                    trailing: CircleAvatar(
-                      backgroundColor: conversation.lastMessage?.seenAt != null
-                          ? Colors.transparent
-                          : Colors.blue,
-                    ),
+                    trailing: isSeen != false
+                        ? const Icon(Icons.circle, color: Colors.blue, size: 12)
+                        : null,
                     onTap: () {
                       context.goNamed(
                         "conversation",

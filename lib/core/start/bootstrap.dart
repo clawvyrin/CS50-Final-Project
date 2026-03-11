@@ -33,7 +33,7 @@ class AppBootstrap {
 
     final client = Supabase.instance.client;
 
-    await PushNotificationService().initialize();
+    await PushNotificationService().initialize(client.auth.currentUser?.id);
 
     return BootstrapData(settings: settings, supabaseClient: client);
   }

@@ -1,7 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:task_companion/features/profiles/models/linked_profile_model.dart';
 import 'package:task_companion/features/tasks/models/linked_task_model.dart';
-import 'package:task_companion/features/tasks/models/resource_model.dart';
+import 'package:task_companion/features/resources/models/resource_model.dart';
 
 part 'activity_model.freezed.dart';
 part 'activity_model.g.dart';
